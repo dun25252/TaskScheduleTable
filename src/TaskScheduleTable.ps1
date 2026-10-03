@@ -13,13 +13,33 @@ if ([string]::IsNullOrWhiteSpace([string]$global:TaskTableBootstrapPath)) {
     $script:ScriptPath = [string]$global:TaskTableBootstrapPath
 }
 if ([string]::IsNullOrWhiteSpace($script:ScriptPath)) {
-    $script:ScriptPath = Join-Path (Get-Location).Path 'タスク_予定表.ps1'
+    $script:ScriptPath = Join-Path (Get-Location).Path 'TaskScheduleTable.ps1'
 }
 
 $script:AppName = 'タスク_予定表'
-$script:Version = '1.6'
+$script:Version = '1.7'
 $script:AppDir = Split-Path -Parent $script:ScriptPath
-$script:ExePath = Join-Path $script:AppDir 'タスク_予定表.exe'
+function Resolve-LauncherExePath {
+    param([string]$BaseDir)
+
+    foreach ($name in @('タスク_予定表.exe', 'TaskScheduleTable.exe')) {
+        $candidate = Join-Path $BaseDir $name
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+    }
+
+    try {
+        $exeFiles = @(Get-ChildItem -LiteralPath $BaseDir -File -Filter '*.exe' -ErrorAction Stop)
+        if ($exeFiles.Count -eq 1) {
+            return [System.IO.Path]::GetFullPath($exeFiles[0].FullName)
+        }
+    } catch { }
+
+    return (Join-Path $BaseDir 'タスク_予定表.exe')
+}
+
+$script:ExePath = Resolve-LauncherExePath $script:AppDir
 $script:VoiceDir = Join-Path $script:AppDir 'Voice'
 
 # v1.3: エラー音声はエラーログと連動。起動初期のエラーはボイス初期化後まで保留する。
@@ -375,9 +395,13 @@ function Save-Notifications {
 
 function Register-Startup {
     try {
-        if (-not (Test-Path -LiteralPath $script:ExePath)) {
+        if (-not (Test-Path -LiteralPath $script:ExePath -PathType Leaf)) {
+            $script:ExePath = Resolve-LauncherExePath $script:AppDir
+        }
+        if (-not (Test-Path -LiteralPath $script:ExePath -PathType Leaf)) {
             throw ('自動起動登録対象のEXEが見つかりません: ' + $script:ExePath)
         }
+        Write-StartupTrace ("自動起動EXE解決: {0}" -f $script:ExePath)
 
         # v1.2: HKCU Run ではなくユーザーの Startup フォルダーへ .lnk を作成する。
         # Windowsの「スタートアップ アプリ」と同等のログオン時起動経路で、管理者権限は不要。
@@ -516,7 +540,7 @@ $mainXaml = @"
         Title="タスク・予定表"
         WindowStyle="None"
         ResizeMode="NoResize"
-        AllowsTransparency="True"
+        AllowsTransparency="False"
         Background="#000000"
         BorderBrush="#000000"
         BorderThickness="0"
@@ -524,6 +548,8 @@ $mainXaml = @"
         FontFamily="Yu Gothic UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         ShowInTaskbar="True"
         MinWidth="430" MinHeight="250">
     <Window.Resources>
@@ -568,7 +594,21 @@ $mainXaml = @"
             <Setter Property="Foreground" Value="#00FF66"/>
             <Setter Property="Margin" Value="2,2,14,2"/>
         </Style>
-        <!-- v1.6: Windows既定の白いスクロールバーを使用せず、黒/緑で統一する。 -->
+        <Style x:Key="InvisibleResizeThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="Transparent" BorderThickness="0"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- v1.7: Windows既定の白いスクロールバーを使用せず、黒/緑で統一する。 -->
         <Style TargetType="{x:Type ScrollBar}">
             <Setter Property="Background" Value="#000000"/>
             <Setter Property="Foreground" Value="#00FF66"/>
@@ -687,14 +727,14 @@ $mainXaml = @"
             </Border>
 
             <!-- v1.3: 4辺+4隅の全方向リサイズ。位置固定ONでもサイズ変更は許可する。 -->
-            <Thumb x:Name="ResizeLeft" Grid.RowSpan="3" Width="7" HorizontalAlignment="Left" VerticalAlignment="Stretch" Cursor="SizeWE" Background="Transparent"/>
-            <Thumb x:Name="ResizeRight" Grid.RowSpan="3" Width="7" HorizontalAlignment="Right" VerticalAlignment="Stretch" Cursor="SizeWE" Background="Transparent"/>
-            <Thumb x:Name="ResizeTop" Grid.RowSpan="3" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Top" Cursor="SizeNS" Background="Transparent"/>
-            <Thumb x:Name="ResizeBottom" Grid.RowSpan="3" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Cursor="SizeNS" Background="Transparent"/>
-            <Thumb x:Name="ResizeTopLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" Background="Transparent"/>
-            <Thumb x:Name="ResizeTopRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" Background="Transparent"/>
-            <Thumb x:Name="ResizeBottomLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" Background="Transparent"/>
-            <Thumb x:Name="ResizeBottomRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Background="Transparent"/>
+            <Thumb x:Name="ResizeLeft" Grid.RowSpan="3" Width="7" HorizontalAlignment="Left" VerticalAlignment="Stretch" Cursor="SizeWE" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeRight" Grid.RowSpan="3" Width="7" HorizontalAlignment="Right" VerticalAlignment="Stretch" Cursor="SizeWE" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeTop" Grid.RowSpan="3" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Top" Cursor="SizeNS" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeBottom" Grid.RowSpan="3" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Cursor="SizeNS" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeTopLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeTopRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeBottomLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" Style="{StaticResource InvisibleResizeThumbStyle}"/>
+            <Thumb x:Name="ResizeBottomRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Style="{StaticResource InvisibleResizeThumbStyle}"/>
         </Grid>
     </Border>
 </Window>
@@ -752,10 +792,10 @@ $virtualLeft = [System.Windows.SystemParameters]::VirtualScreenLeft
 $virtualTop = [System.Windows.SystemParameters]::VirtualScreenTop
 $virtualWidth = [System.Windows.SystemParameters]::VirtualScreenWidth
 $virtualHeight = [System.Windows.SystemParameters]::VirtualScreenHeight
-if ($script:WindowWidth -lt 430) { $script:WindowWidth = 430 }
-if ($script:WindowHeight -lt 250) { $script:WindowHeight = 250 }
-if ($script:WindowWidth -gt $virtualWidth) { $script:WindowWidth = [Math]::Max(430, $virtualWidth * 0.92) }
-if ($script:WindowHeight -gt $virtualHeight) { $script:WindowHeight = [Math]::Max(250, $virtualHeight * 0.92) }
+if ($script:WindowWidth -lt 380) { $script:WindowWidth = 380 }
+if ($script:WindowHeight -lt 220) { $script:WindowHeight = 220 }
+if ($script:WindowWidth -gt $virtualWidth) { $script:WindowWidth = [Math]::Max(380, $virtualWidth * 0.92) }
+if ($script:WindowHeight -gt $virtualHeight) { $script:WindowHeight = [Math]::Max(220, $virtualHeight * 0.92) }
 if (($script:WindowLeft + 120) -gt ($virtualLeft + $virtualWidth) -or ($script:WindowTop + 80) -gt ($virtualTop + $virtualHeight) -or ($script:WindowLeft + $script:WindowWidth) -lt ($virtualLeft + 80) -or ($script:WindowTop + 50) -lt $virtualTop) {
     $script:WindowLeft = $virtualLeft + 70
     $script:WindowTop = $virtualTop + 70
@@ -854,12 +894,20 @@ function Update-ResponsiveLayout {
 
         $compactWidth = ($w -lt 650.0)
         $veryCompactWidth = ($w -lt 520.0)
+        $ultraCompactWidth = ($w -lt 450.0)
         $compactHeight = ($h -lt 350.0)
+        $ultraCompactHeight = ($h -lt 285.0)
 
         # 文字が上下で切れないよう、タイトル・ステータス行は文字サイズに追従させる。
-        $titleHeight = [double][Math]::Max(34.0, [Math]::Ceiling(([double]$script:FontSize * 1.45) + 10.0))
-        $statusHeight = [double][Math]::Max(28.0, [Math]::Ceiling(([double]$script:FontSize * 1.35) + 8.0))
-        $headerHeight = [double][Math]::Max(30.0, [Math]::Ceiling(([double]$script:FontSize * 1.30) + 8.0))
+        if ($ultraCompactHeight) {
+            $titleHeight = [double][Math]::Max(28.0, [Math]::Ceiling(([double][Math]::Min($script:FontSize, 14.0) * 1.25) + 8.0))
+            $statusHeight = [double][Math]::Max(24.0, [Math]::Ceiling(([double][Math]::Min($script:FontSize, 13.0) * 1.15) + 6.0))
+            $headerHeight = [double][Math]::Max(26.0, [Math]::Ceiling(([double][Math]::Min($script:FontSize, 13.0) * 1.15) + 6.0))
+        } else {
+            $titleHeight = [double][Math]::Max(32.0, [Math]::Ceiling(([double]$script:FontSize * 1.35) + 9.0))
+            $statusHeight = [double][Math]::Max(26.0, [Math]::Ceiling(([double]$script:FontSize * 1.25) + 7.0))
+            $headerHeight = [double][Math]::Max(28.0, [Math]::Ceiling(([double]$script:FontSize * 1.20) + 7.0))
+        }
         $script:TitleRow.Height = [System.Windows.GridLength]::new($titleHeight, [System.Windows.GridUnitType]::Pixel)
         $script:StatusRow.Height = [System.Windows.GridLength]::new($statusHeight, [System.Windows.GridUnitType]::Pixel)
         $script:HeaderRow.Height = [System.Windows.GridLength]::new($headerHeight, [System.Windows.GridUnitType]::Pixel)
@@ -896,36 +944,69 @@ function Update-ResponsiveLayout {
             $script:FontDownButton.Content = '文字を小さくする'
             $script:TitleText.FontSize = [double][Math]::Max(11.0, $script:FontSize)
         }
+        if ($ultraCompactWidth) {
+            $leftWidth = 82.0
+            $script:ContentGrid.Margin = [System.Windows.Thickness]::new(2)
+            $script:LeftPanelBorder.Padding = [System.Windows.Thickness]::new(2)
+            $script:LockButton.Content = if ($script:Locked) { '固:ON' } else { '固:OFF' }
+            $script:TopmostButton.Content = if ($script:AlwaysOnTop) { '前:ON' } else { '前:OFF' }
+            $script:LockButton.MinWidth = 52
+            $script:TopmostButton.MinWidth = 52
+            $script:LockButton.Padding = [System.Windows.Thickness]::new(2,1,2,1)
+            $script:TopmostButton.Padding = [System.Windows.Thickness]::new(2,1,2,1)
+            $script:LockButton.FontSize = [double][Math]::Max(8.0, [Math]::Min(11.0, $script:FontSize * 0.62))
+            $script:TopmostButton.FontSize = $script:LockButton.FontSize
+            foreach ($systemButton in @($script:MinimizeButton,$script:MaximizeButton,$script:CloseButton)) {
+                $systemButton.Width = 28
+                $systemButton.Padding = [System.Windows.Thickness]::new(1)
+                $systemButton.Margin = [System.Windows.Thickness]::new(1)
+                $systemButton.FontSize = [double][Math]::Max(9.0, [Math]::Min(12.0, $script:FontSize * 0.65))
+            }
+            $script:TitleText.FontSize = [double][Math]::Max(8.5, [Math]::Min(11.0, $script:FontSize * 0.60))
+            $script:TitleText.Margin = [System.Windows.Thickness]::new(5,0,2,0)
+            $script:FontUpButton.Content = '文字＋'
+            $script:FontDownButton.Content = '文字－'
+        } else {
+            $script:MinimizeButton.Width = 34
+            $script:MaximizeButton.Width = 34
+            $script:CloseButton.Width = 34
+            $script:MinimizeButton.Margin = [System.Windows.Thickness]::new(2)
+            $script:MaximizeButton.Margin = [System.Windows.Thickness]::new(2)
+            $script:CloseButton.Margin = [System.Windows.Thickness]::new(2,2,4,2)
+            $script:TitleText.Margin = [System.Windows.Thickness]::new(10,0,6,0)
+        }
+
         $script:LeftColumn.Width = [System.Windows.GridLength]::new($leftWidth, [System.Windows.GridUnitType]::Pixel)
 
         # 狭い幅でもURL/期限列がタイトル領域を圧迫しすぎないようにする。
-        $urlWidth = if ($veryCompactWidth) { 42.0 } elseif ($compactWidth) { 46.0 } else { 52.0 }
-        $deadlineWidth = if ($veryCompactWidth) { 72.0 } elseif ($compactWidth) { 82.0 } else { 94.0 }
+        $urlWidth = if ($ultraCompactWidth) { 34.0 } elseif ($veryCompactWidth) { 40.0 } elseif ($compactWidth) { 46.0 } else { 52.0 }
+        $deadlineWidth = if ($ultraCompactWidth) { 58.0 } elseif ($veryCompactWidth) { 68.0 } elseif ($compactWidth) { 82.0 } else { 94.0 }
         $script:HeaderUrlColumn.Width = [System.Windows.GridLength]::new($urlWidth, [System.Windows.GridUnitType]::Pixel)
         $script:HeaderDeadlineColumn.Width = [System.Windows.GridLength]::new($deadlineWidth, [System.Windows.GridUnitType]::Pixel)
         $script:RowUrlWidth = $urlWidth
         $script:RowDeadlineWidth = $deadlineWidth
 
-        $headerMax = if ($veryCompactWidth) { 12.0 } else { 16.0 }
+        $headerMax = if ($ultraCompactWidth) { 10.0 } elseif ($veryCompactWidth) { 12.0 } else { 16.0 }
         $headerFont = [double][Math]::Max(9.0, [Math]::Min($script:FontSize, $headerMax))
         $script:UrlHeader.FontSize = $headerFont
         $script:DeadlineHeader.FontSize = $headerFont
         $script:TaskTitleHeader.FontSize = $headerFont
 
-        $buttonHeight = if ($compactHeight) { [double][Math]::Max(27.0, [Math]::Min(34.0, $script:FontSize * 1.55)) } else { [double][Math]::Max(34.0, [Math]::Min(44.0, $script:FontSize * 1.95)) }
-        $buttonFont = if ($compactHeight) { [double][Math]::Max(9.0, [Math]::Min($script:FontSize, 14.0)) } else { [double]$script:FontSize }
-        $buttonPadding = if ($compactHeight) { [System.Windows.Thickness]::new(5,2,5,2) } else { [System.Windows.Thickness]::new(8,5,8,5) }
+        $buttonHeight = if ($ultraCompactHeight) { [double][Math]::Max(24.0, [Math]::Min(29.0, $script:FontSize * 1.30)) } elseif ($compactHeight) { [double][Math]::Max(27.0, [Math]::Min(34.0, $script:FontSize * 1.55)) } else { [double][Math]::Max(34.0, [Math]::Min(44.0, $script:FontSize * 1.95)) }
+        $buttonFont = if ($ultraCompactHeight) { [double][Math]::Max(8.0, [Math]::Min($script:FontSize, 11.5)) } elseif ($compactHeight) { [double][Math]::Max(9.0, [Math]::Min($script:FontSize, 14.0)) } else { [double]$script:FontSize }
+        $buttonPadding = if ($ultraCompactHeight) { [System.Windows.Thickness]::new(3,1,3,1) } elseif ($compactHeight) { [System.Windows.Thickness]::new(5,2,5,2) } else { [System.Windows.Thickness]::new(8,5,8,5) }
         foreach ($btn in @($script:AddButton,$script:EditButton,$script:DeleteButton,$script:FontUpButton,$script:FontDownButton)) {
             Set-ButtonCompactStyle $btn $buttonHeight $buttonFont $buttonPadding
         }
         $script:CtrlHint.Visibility = if ($compactHeight) { [System.Windows.Visibility]::Collapsed } else { [System.Windows.Visibility]::Visible }
-        $script:FontLabel.FontSize = [double][Math]::Max(9.0, [Math]::Min($script:FontSize, 15.0))
-        $script:StatusText.FontSize = [double][Math]::Max(9.0, [Math]::Min($script:FontSize, 17.0))
+        $script:FontLabel.Visibility = if ($ultraCompactHeight) { [System.Windows.Visibility]::Collapsed } else { [System.Windows.Visibility]::Visible }
+        $script:FontLabel.FontSize = [double][Math]::Max(8.0, [Math]::Min($script:FontSize, 15.0))
+        $script:StatusText.FontSize = if ($ultraCompactHeight) { [double][Math]::Max(8.0, [Math]::Min($script:FontSize, 12.0)) } else { [double][Math]::Max(9.0, [Math]::Min($script:FontSize, 17.0)) }
         $script:CountText.FontSize = $script:StatusText.FontSize
 
         # 最小サイズを従来より縮小。高さ不足時は左操作欄だけ内部スクロールして操作性を維持する。
-        $script:Window.MinWidth = [double][Math]::Max(430.0, 315.0 + $leftWidth)
-        $script:Window.MinHeight = [double]250.0
+        $script:Window.MinWidth = [double][Math]::Max(380.0, 285.0 + $leftWidth)
+        $script:Window.MinHeight = [double]220.0
     } catch {
         Write-ErrorLog 'レスポンシブレイアウト反映エラー' $_.Exception
     }
@@ -970,7 +1051,7 @@ function Fit-TitleTextBlock {
         $available = $TextBlock.ActualWidth - 8
         if ($available -le 30) { return }
         $size = [double]$script:FontSize
-        $minSize = 7.0
+        $minSize = 5.5
         $probe = New-Object System.Windows.Controls.TextBlock
         $probe.Text = $TextBlock.Text
         $probe.FontFamily = $TextBlock.FontFamily
@@ -1059,7 +1140,13 @@ function Open-UrlPopup {
 
 function New-RowBorder {
     param($Task)
-    $rowHeight = [Math]::Max(38.0, [Math]::Min(56.0, $script:FontSize * 2.15))
+    $windowH = [double]$script:Window.ActualHeight
+    if ($windowH -le 0) { $windowH = [double]$script:Window.Height }
+    if ($windowH -lt 330.0) {
+        $rowHeight = [Math]::Max(31.0, [Math]::Min(40.0, ($script:FontSize * 1.55) + 3.0))
+    } else {
+        $rowHeight = [Math]::Max(36.0, [Math]::Min(52.0, ($script:FontSize * 1.85) + 4.0))
+    }
     $border = New-Object System.Windows.Controls.Border
     $border.Height = $rowHeight
     $border.BorderBrush = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(0,110,44))
@@ -1078,8 +1165,13 @@ function New-RowBorder {
     $urlButton.Tag = [string]$Task.Id
     $urlButton.Content = if ([bool]$Task.UrlEnabled -and -not [string]::IsNullOrWhiteSpace([string]$Task.Url)) { '●' } else { '○' }
     $urlButton.Padding = [System.Windows.Thickness]::new(2)
-    $urlButton.Margin = [System.Windows.Thickness]::new(5)
-    $urlButton.FontSize = [Math]::Max(11.0, $script:FontSize)
+    $urlMargin = if ([double]$script:Window.ActualWidth -lt 520.0) { 3.0 } else { 5.0 }
+    $urlButton.Margin = [System.Windows.Thickness]::new($urlMargin)
+    $urlButton.FontSize = if ([double]$script:Window.ActualWidth -lt 520.0) {
+        [Math]::Max(10.0, [Math]::Min($script:FontSize, 15.0))
+    } else {
+        [Math]::Max(11.0, $script:FontSize)
+    }
     $urlButton.ToolTip = 'URLメニュー'
     [System.Windows.Controls.Grid]::SetColumn($urlButton,0)
     $urlButton.add_Click({
@@ -1104,13 +1196,19 @@ function New-RowBorder {
     $deadline.HorizontalAlignment = 'Center'
     $deadline.VerticalAlignment = 'Center'
     $deadline.TextTrimming = 'CharacterEllipsis'
+    $deadline.FontSize = if ([double]$script:Window.ActualWidth -lt 520.0) {
+        [Math]::Max(8.0, [Math]::Min($script:FontSize, 14.0))
+    } else {
+        [double]$script:FontSize
+    }
     [System.Windows.Controls.Grid]::SetColumn($deadline,1)
 
     $title = New-Object System.Windows.Controls.TextBlock
     $title.Text = [string]$Task.Title
     $title.Foreground = $brush
     $title.VerticalAlignment = 'Center'
-    $title.Margin = [System.Windows.Thickness]::new(8,0,8,0)
+    $titleMarginX = if ([double]$script:Window.ActualWidth -lt 520.0) { 3.0 } else { 8.0 }
+    $title.Margin = [System.Windows.Thickness]::new($titleMarginX,0,$titleMarginX,0)
     $title.TextWrapping = 'NoWrap'
     $title.TextTrimming = 'CharacterEllipsis'
     $title.FontSize = $script:FontSize
@@ -1179,8 +1277,9 @@ function Render-Tasks {
             }
         }
         Update-Status
-        if ($null -ne $script:FitTimer) {
-            $script:FitTimer.Stop(); $script:FitTimer.Start()
+        if ($null -ne $script:FitTimer -and -not $script:SuppressFitTimer) {
+            $script:FitTimer.Stop()
+            $script:FitTimer.Start()
         }
         $script:TaskScroll.ScrollToVerticalOffset($offset)
     } catch {
@@ -1645,9 +1744,20 @@ function Check-DeadlineAlerts {
 # -------------------------
 # Timers
 # -------------------------
+$script:SuppressFitTimer = $false
 $script:FitTimer = New-Object System.Windows.Threading.DispatcherTimer
 $script:FitTimer.Interval = [TimeSpan]::FromMilliseconds(140)
-$script:FitTimer.add_Tick({ $script:FitTimer.Stop(); Render-Tasks; Fit-AllTaskTitles })
+$script:FitTimer.add_Tick({
+    $script:FitTimer.Stop()
+    $script:SuppressFitTimer = $true
+    try {
+        Render-Tasks
+        $script:Window.UpdateLayout()
+        Fit-AllTaskTitles
+    } finally {
+        $script:SuppressFitTimer = $false
+    }
+})
 
 $script:SettingsTimer = New-Object System.Windows.Threading.DispatcherTimer
 $script:SettingsTimer.Interval = [TimeSpan]::FromMilliseconds(650)
