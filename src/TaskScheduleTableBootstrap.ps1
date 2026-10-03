@@ -19,7 +19,7 @@ function Write-BootError([System.Exception]$ex) {
     $path = Join-Path $errorDir ('タスク_予定表_Log_Error_{0}.txt' -f $stamp)
     $body = @(
         'APP=タスク_予定表',
-        'VERSION=1.6',
+        'VERSION=1.7',
         ('DATETIME={0}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')),
         'MESSAGE=起動ブートストラップで初期化エラー',
         'EXCEPTION_BEGIN',
