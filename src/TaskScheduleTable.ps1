@@ -17,7 +17,7 @@ if ([string]::IsNullOrWhiteSpace($script:ScriptPath)) {
 }
 
 $script:AppName = 'タスク_予定表'
-$script:Version = '1.5'
+$script:Version = '1.6'
 $script:AppDir = Split-Path -Parent $script:ScriptPath
 $script:ExePath = Join-Path $script:AppDir 'タスク_予定表.exe'
 $script:VoiceDir = Join-Path $script:AppDir 'Voice'
@@ -516,7 +516,10 @@ $mainXaml = @"
         Title="タスク・予定表"
         WindowStyle="None"
         ResizeMode="NoResize"
+        AllowsTransparency="True"
         Background="#000000"
+        BorderBrush="#000000"
+        BorderThickness="0"
         Foreground="#00FF66"
         FontFamily="Yu Gothic UI"
         UseLayoutRounding="True"
@@ -565,14 +568,47 @@ $mainXaml = @"
             <Setter Property="Foreground" Value="#00FF66"/>
             <Setter Property="Margin" Value="2,2,14,2"/>
         </Style>
+        <!-- v1.6: Windows既定の白いスクロールバーを使用せず、黒/緑で統一する。 -->
         <Style TargetType="{x:Type ScrollBar}">
             <Setter Property="Background" Value="#000000"/>
             <Setter Property="Foreground" Value="#00FF66"/>
-            <Setter Property="Width" Value="14"/>
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Border Background="#000000" BorderBrush="#003311" BorderThickness="1,0,0,0">
+                            <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True" Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Background="#000000" BorderThickness="0" Focusable="False" Opacity="0"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="#003311" Foreground="#00FF66" MinHeight="24">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border Background="#003311" BorderBrush="#00FF66" BorderThickness="1" CornerRadius="2" Margin="1"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Background="#000000" BorderThickness="0" Focusable="False" Opacity="0"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter Property="Width" Value="Auto"/>
+                                <Setter Property="Height" Value="12"/>
+                                <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
-    <Border BorderBrush="#00FF66" BorderThickness="1" Background="#000000">
-        <Grid x:Name="RootGrid" Background="#000000">
+    <Border BorderBrush="#00FF66" BorderThickness="1" Background="#000000" SnapsToDevicePixels="True">
+        <Grid x:Name="RootGrid" Background="#000000" ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="TitleRow" Height="38"/>
                 <RowDefinition Height="*"/>
@@ -635,7 +671,7 @@ $mainXaml = @"
                                 <TextBlock x:Name="TaskTitleHeader" Grid.Column="2" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#00FF66" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </Border>
-                        <ScrollViewer x:Name="TaskScroll" Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" PanningMode="VerticalOnly" Background="#000000">
+                        <ScrollViewer x:Name="TaskScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" PanningMode="VerticalOnly" Background="#000000">
                             <StackPanel x:Name="TaskPanel" Background="#000000"/>
                         </ScrollViewer>
                     </Grid>
@@ -658,7 +694,7 @@ $mainXaml = @"
             <Thumb x:Name="ResizeTopLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" Background="Transparent"/>
             <Thumb x:Name="ResizeTopRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" Background="Transparent"/>
             <Thumb x:Name="ResizeBottomLeft" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" Background="Transparent"/>
-            <Thumb x:Name="ResizeBottomRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Background="#003311" Opacity="0.85"/>
+            <Thumb x:Name="ResizeBottomRight" Grid.RowSpan="3" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Background="Transparent"/>
         </Grid>
     </Border>
 </Window>
@@ -1714,7 +1750,7 @@ $script:ResizeBottomRight.add_DragDelta({ param($s,$e) Invoke-EdgeResize $e.Hori
 
 $script:Window.add_SizeChanged({
     try {
-        # v1.5: 小型サイズでは操作列・タイトルバー・行高を再計算し、文字切れを防止する。
+        # v1.6: 小型サイズでは操作列・タイトルバー・行高を再計算し、黒/緑UIのまま文字切れを防止する。
         Update-ResponsiveLayout
         $script:FitTimer.Stop(); $script:FitTimer.Start()
         $script:SettingsTimer.Stop(); $script:SettingsTimer.Start()
