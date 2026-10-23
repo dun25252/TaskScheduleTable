@@ -94,7 +94,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            AppServices.Log.WriteError("起動初期化エラー", ex);
+            AppServices.Log.WriteError("起動初期化エラー", ex);\n            AppServices.Voice.Queue("エラーが発生しました。");
             MessageBox.Show("初期化中にエラーが発生しました。Log\\Error を確認してください。", "タスク・予定表",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -614,7 +614,7 @@ public partial class MainWindow : Window
         try { UrlHelper.Open(_urlPopupTask.Url); }
         catch (Exception ex)
         {
-            AppServices.Log.WriteError("URLオープンエラー", ex);
+            AppServices.Log.WriteError("URLオープンエラー", ex);\n            AppServices.Voice.Queue("エラーが発生しました。");
             UpdateStatus("URLを開けませんでした。");
         }
     }
@@ -842,7 +842,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            AppServices.Log.WriteError("背景画像設定エラー", ex);
+            AppServices.Log.WriteError("背景画像設定エラー", ex);\n            AppServices.Voice.Queue("エラーが発生しました。");
             MessageBox.Show(ex.Message, "背景画像", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
@@ -920,7 +920,7 @@ public partial class MainWindow : Window
         {
             BackgroundImage.Source = null;
             ApplyBackgroundVisibility();
-            AppServices.Log.WriteError("背景画像読込エラー", ex);
+            AppServices.Log.WriteError("背景画像読込エラー", ex);\n            AppServices.Voice.Queue("エラーが発生しました。");
         }
     }
 
