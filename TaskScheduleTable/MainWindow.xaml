@@ -62,7 +62,7 @@
 
         <Style TargetType="TextBox">
             <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
-            <Setter Property="Background" Value="#F0050505"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundColorBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Padding" Value="6"/>
@@ -73,13 +73,13 @@
         </Style>
 
         <Style TargetType="ScrollBar">
-            <Setter Property="Background" Value="#000000"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundColorBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Width" Value="11"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollBar">
-                        <Border Background="#000000" BorderBrush="#004A20" BorderThickness="1,0,0,0">
+                        <Border Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1,0,0,0">
                             <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True" Focusable="False">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Opacity="0" Focusable="False"/>
@@ -88,7 +88,7 @@
                                     <Thumb MinHeight="24">
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#153D25" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" CornerRadius="2" Margin="1"/>
+                                                <Border Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" CornerRadius="2" Margin="1"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -115,7 +115,7 @@
             <Grid Grid.RowSpan="3" IsHitTestVisible="False" ClipToBounds="True">
                 <Border x:Name="BackgroundBase" Background="{DynamicResource BackgroundColorBrush}"/>
                 <Image x:Name="BackgroundImage" Stretch="UniformToFill" Opacity="0"/>
-                <Border x:Name="BackgroundShade" Background="#000000" Opacity="0"/>
+                <Border x:Name="BackgroundShade" Background="{DynamicResource BackgroundColorBrush}" Opacity="0"/>
             </Grid>
 
             <Border x:Name="TitleChrome" Grid.Row="0" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="0,0,0,1">
