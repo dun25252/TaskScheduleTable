@@ -4,7 +4,7 @@
 
 ## ダウンロード
 
-`download/TaskScheduleTable_v1.9_READY.zip`
+`download/TaskScheduleTable_v1.10_READY.zip`
 
 ZIPを展開して `タスク_予定表.exe` を起動するだけです。
 
@@ -22,6 +22,6 @@ ZIPを展開して `タスク_予定表.exe` を起動するだけです。
 - 背景画像の透明度変更
 - Windows起動時に自動起動
 
-## v1.9
+## v1.10
 
-C# / WPF版。背景画像100%時は黒レイヤーを消して写真を全面表示します。
+C# / WPF版。背景画像と文字背景の濃さを別々に調整できます。
