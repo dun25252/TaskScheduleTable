@@ -4,7 +4,7 @@
 
 ## ダウンロード
 
-`download/TaskScheduleTable_v1.11_READY.zip`
+`download/TaskScheduleTable_v1.12_READY.zip`
 
 ZIPを展開して `タスク_予定表.exe` を起動するだけです。
 
@@ -22,6 +22,6 @@ ZIPを展開して `タスク_予定表.exe` を起動するだけです。
 - 背景画像の透明度変更
 - Windows起動時に自動起動
 
-## v1.11
+## v1.12
 
-C# / WPF版。文字色・背景色・背景画像・文字背景の濃さを変更できます。
+C# / WPF版。色設定の起動エラーを修正。文字色・背景色・背景画像・文字背景の濃さを変更できます。
