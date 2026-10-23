@@ -115,7 +115,9 @@ public partial class MainWindow : Window
             FontLabel.Text = $"文字サイズ: {_settings.FontSize:0.0} pt";
 
             BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
+            ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
             UpdateBackgroundOpacityLabel();
+            UpdateReadabilityOpacityLabel();
         }
         finally { _restoring = false; }
     }
@@ -342,7 +344,8 @@ public partial class MainWindow : Window
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
             FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 8, 13.5) : _settings.FontSize,
-            Margin = new Thickness(2, 0, 2, 0)
+            Margin = new Thickness(2, 0, 2, 0),
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect")
         };
         Grid.SetColumn(deadline, 1);
 
@@ -354,8 +357,9 @@ public partial class MainWindow : Window
             Margin = new Thickness(ActualWidth < 520 ? 3 : 8, 0, ActualWidth < 520 ? 3 : 8, 0),
             BaseFontSize = _settings.FontSize,
             MinFitFontSize = 5.5,
-            FontWeight = FontWeights.Normal,
-            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : task.Details
+            FontWeight = FontWeights.SemiBold,
+            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : task.Details,
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect")
         };
         Grid.SetColumn(title, 2);
 
@@ -647,7 +651,9 @@ public partial class MainWindow : Window
     {
         BackgroundPopup.PlacementTarget = BackgroundButton;
         BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
+        ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
         UpdateBackgroundOpacityLabel();
+        UpdateReadabilityOpacityLabel();
         BackgroundPopup.IsOpen = true;
     }
 
@@ -693,9 +699,22 @@ public partial class MainWindow : Window
         if (_initialized) ScheduleSaveSettings();
     }
 
+    private void ReadabilityOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        _settings.ReadabilityOverlayOpacity = Math.Clamp(e.NewValue / 100.0, 0, 0.70);
+        ApplyBackgroundVisibility();
+        UpdateReadabilityOpacityLabel();
+        if (_initialized) ScheduleSaveSettings();
+    }
+
     private void UpdateBackgroundOpacityLabel()
     {
         if (BackgroundOpacityLabel is not null) BackgroundOpacityLabel.Text = $"{Math.Round(_settings.BackgroundImageOpacity * 100):0}%";
+    }
+
+    private void UpdateReadabilityOpacityLabel()
+    {
+        if (ReadabilityOpacityLabel is not null) ReadabilityOpacityLabel.Text = $"{Math.Round(_settings.ReadabilityOverlayOpacity * 100):0}%";
     }
 
     private void ApplyBackground()
@@ -749,12 +768,17 @@ public partial class MainWindow : Window
 
         // 背景画像がある間は、タイトル・左右パネル・行・ボタンの黒塗りを消す。
         // これにより100%設定時は写真をGUI全面でそのまま確認できる。
-        var surfaceOpacity = hasImage ? 0.0 : 1.0;
-        SetSurfaceBrushOpacity("ChromeFillBrush", surfaceOpacity);
-        SetSurfaceBrushOpacity("PanelFillBrush", surfaceOpacity);
-        SetSurfaceBrushOpacity("HeaderFillBrush", surfaceOpacity);
-        SetSurfaceBrushOpacity("RowFillBrush", surfaceOpacity);
-        SetSurfaceBrushOpacity("ButtonFillBrush", hasImage ? 0.0 : 0.85);
+        var readability = Math.Clamp(_settings.ReadabilityOverlayOpacity, 0.0, 0.70);
+        var panelOpacity = hasImage ? readability : 1.0;
+        var chromeOpacity = hasImage ? Math.Clamp(readability + 0.10, 0.0, 0.80) : 1.0;
+        var headerOpacity = hasImage ? Math.Clamp(readability + 0.06, 0.0, 0.76) : 1.0;
+        var buttonOpacity = hasImage ? Math.Clamp(readability + 0.12, 0.0, 0.82) : 0.85;
+
+        SetSurfaceBrushOpacity("ChromeFillBrush", chromeOpacity);
+        SetSurfaceBrushOpacity("PanelFillBrush", panelOpacity);
+        SetSurfaceBrushOpacity("HeaderFillBrush", headerOpacity);
+        SetSurfaceBrushOpacity("RowFillBrush", panelOpacity);
+        SetSurfaceBrushOpacity("ButtonFillBrush", buttonOpacity);
     }
 
     private void SetSurfaceBrushOpacity(string key, double opacity)
