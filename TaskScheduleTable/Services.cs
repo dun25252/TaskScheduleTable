@@ -74,7 +74,7 @@ public sealed class LogService
     {
         var text = new StringBuilder()
             .AppendLine("APP=タスク_予定表")
-            .AppendLine("VERSION=1.9")
+            .AppendLine("VERSION=1.10")
             .AppendLine($"DATETIME={DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}")
             .AppendLine($"MESSAGE={message}")
             .AppendLine("EXCEPTION_BEGIN")
