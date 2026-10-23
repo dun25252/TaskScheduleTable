@@ -55,6 +55,7 @@ jobs:
 
           Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v2.0\タスク_予定表.exe -Force
           Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v2.0\Voice\README.md -Force
+          Copy-Item .\TaskScheduleTable\Voice\*.wav .\package\TaskScheduleTable_v2.0\Voice\ -Force
 
           @'
           タスク_予定表 v2.0
@@ -66,11 +67,11 @@ jobs:
           SDK、CMD、ビルド操作は不要です。
 
           Voice:
-          Voiceフォルダーに対応するWAVを入れると音声通知を使用できます。
+          VOICE一式を同梱しています。音量はアプリ内のVOICEメニューで0～100%に調整できます。
           '@ | Set-Content .\package\TaskScheduleTable_v2.0\README.txt -Encoding UTF8
 
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
-          Compress-Archive -Path .\package\TaskScheduleTable_v2.0 -DestinationPath .\download\TaskScheduleTable_v2.0_READY.zip -Force
+          Compress-Archive -Path .\package\TaskScheduleTable_v2.0 -DestinationPath .\download\TaskScheduleTable_v2.0_RELEASE.zip -Force
 
       - name: Commit ready-to-run zip
         shell: pwsh
@@ -81,7 +82,7 @@ jobs:
           git add -f .\download\TaskScheduleTable_v2.0_READY.zip
 
           if (git diff --cached --quiet) {
-            Write-Host "READY package unchanged."
+            Write-Host "RELEASE package unchanged."
             exit 0
           }
 
