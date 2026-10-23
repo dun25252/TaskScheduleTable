@@ -116,6 +116,7 @@ public partial class MainWindow : Window
 
             BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
             ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
+            ApplyThemeColors();
             UpdateBackgroundOpacityLabel();
             UpdateReadabilityOpacityLabel();
         }
@@ -286,7 +287,7 @@ public partial class MainWindow : Window
             TaskPanel.Children.Add(new TextBlock
             {
                 Text = "タスク / 予定はありません",
-                Foreground = new SolidColorBrush(Color.FromRgb(0, 150, 60)),
+                Foreground = new SolidColorBrush(GetThemeTextColor()),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(20),
                 FontSize = Math.Clamp(_settings.FontSize, 9, 16)
@@ -307,7 +308,7 @@ public partial class MainWindow : Window
         var row = new Border
         {
             Height = CurrentRowHeight(),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0, 110, 44)),
+            BorderBrush = new SolidColorBrush(GetThemeTextColor()),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Tag = task.Id,
             Cursor = Cursors.Hand,
@@ -396,23 +397,28 @@ public partial class MainWindow : Window
             ? d.ToString("MM / dd") : "期限なし";
     }
 
-    private static Brush GetDueBrush(TaskItem task)
+    private Brush GetDueBrush(TaskItem task)
     {
-        var green = Color.FromRgb(0, 255, 102);
+        var baseColor = GetThemeTextColor();
         if (!task.DeadlineEnabled || !DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var due))
-            return new SolidColorBrush(green);
+            return new SolidColorBrush(baseColor);
 
         var days = (int)Math.Floor((due.Date - DateTime.Today).TotalDays);
-        if (days >= 14) return new SolidColorBrush(green);
-        if (days <= 0) return new SolidColorBrush(Color.FromRgb(255, 38, 52));
+        if (days >= 14) return new SolidColorBrush(baseColor);
 
-        var ratio = (14.0 - days) / 14.0;
-        var r = (byte)Math.Clamp((int)Math.Round(255 * ratio), 0, 255);
-        var g = (byte)Math.Clamp((int)Math.Round(255 * (1 - ratio)), 0, 255);
-        var b = (byte)Math.Clamp((int)Math.Round(102 - 50 * ratio), 0, 255);
-        return new SolidColorBrush(Color.FromRgb(r, g, b));
+        var warning = Color.FromRgb(255, 38, 52);
+        if (days <= 0) return new SolidColorBrush(warning);
+
+        var ratio = Math.Clamp((14.0 - days) / 14.0, 0.0, 1.0);
+        return new SolidColorBrush(Color.FromRgb(
+            LerpByte(baseColor.R, warning.R, ratio),
+            LerpByte(baseColor.G, warning.G, ratio),
+            LerpByte(baseColor.B, warning.B, ratio)));
     }
+
+    private static byte LerpByte(byte a, byte b, double t)
+        => (byte)Math.Clamp((int)Math.Round(a + ((b - a) * t)), 0, 255);
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {
@@ -650,11 +656,119 @@ public partial class MainWindow : Window
     private void BackgroundButton_Click(object sender, RoutedEventArgs e)
     {
         BackgroundPopup.PlacementTarget = BackgroundButton;
+        ApplyThemeColors();
         BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
         ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
         UpdateBackgroundOpacityLabel();
         UpdateReadabilityOpacityLabel();
         BackgroundPopup.IsOpen = true;
+    }
+
+    private void TextColorChoose_Click(object sender, RoutedEventArgs e)
+    {
+        var chosen = ShowColorDialog(_settings.TextColor);
+        if (chosen is null) return;
+
+        _settings.TextColor = chosen;
+        ApplyThemeColors();
+        ApplyBackgroundVisibility();
+        RefreshTasks();
+        AppServices.Data.SaveSettings(_settings);
+        UpdateStatus($"文字色を {_settings.TextColor} に変更しました。");
+    }
+
+    private void BackgroundColorChoose_Click(object sender, RoutedEventArgs e)
+    {
+        var chosen = ShowColorDialog(_settings.BackgroundColor);
+        if (chosen is null) return;
+
+        _settings.BackgroundColor = chosen;
+        ApplyThemeColors();
+        ApplyBackgroundVisibility();
+        RefreshTasks();
+        AppServices.Data.SaveSettings(_settings);
+        UpdateStatus($"背景色を {_settings.BackgroundColor} に変更しました。");
+    }
+
+    private void ResetColors_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.TextColor = "#00FF66";
+        _settings.BackgroundColor = "#000000";
+        ApplyThemeColors();
+        ApplyBackgroundVisibility();
+        RefreshTasks();
+        AppServices.Data.SaveSettings(_settings);
+        UpdateStatus("文字色と背景色を初期値に戻しました。");
+    }
+
+    private string? ShowColorDialog(string initialHex)
+    {
+        var initial = ParseColorOrDefault(initialHex, Color.FromRgb(0, 255, 102));
+        using var dialog = new System.Windows.Forms.ColorDialog
+        {
+            AllowFullOpen = true,
+            AnyColor = true,
+            FullOpen = true,
+            Color = System.Drawing.Color.FromArgb(initial.R, initial.G, initial.B)
+        };
+
+        return dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK
+            ? $"#{dialog.Color.R:X2}{dialog.Color.G:X2}{dialog.Color.B:X2}"
+            : null;
+    }
+
+    private void ApplyThemeColors()
+    {
+        var textColor = ParseColorOrDefault(_settings.TextColor, Color.FromRgb(0, 255, 102));
+        var backgroundColor = ParseColorOrDefault(_settings.BackgroundColor, Colors.Black);
+
+        _settings.TextColor = $"#{textColor.R:X2}{textColor.G:X2}{textColor.B:X2}";
+        _settings.BackgroundColor = $"#{backgroundColor.R:X2}{backgroundColor.G:X2}{backgroundColor.B:X2}";
+
+        Resources["TextColorBrush"] = new SolidColorBrush(textColor);
+        Resources["BackgroundColorBrush"] = new SolidColorBrush(backgroundColor);
+
+        SetSurfaceBrushColor("ChromeFillBrush", backgroundColor);
+        SetSurfaceBrushColor("PanelFillBrush", backgroundColor);
+        SetSurfaceBrushColor("HeaderFillBrush", backgroundColor);
+        SetSurfaceBrushColor("ButtonFillBrush", backgroundColor);
+        SetSurfaceBrushColor("RowFillBrush", backgroundColor);
+
+        if (Resources["TextHaloEffect"] is System.Windows.Media.Effects.DropShadowEffect halo)
+        {
+            var luminance = (0.2126 * textColor.R + 0.7152 * textColor.G + 0.0722 * textColor.B) / 255.0;
+            halo.Color = luminance >= 0.50 ? Colors.Black : Colors.White;
+            halo.Opacity = 1.0;
+        }
+
+        if (TextColorPreview is not null)
+            TextColorPreview.Background = new SolidColorBrush(textColor);
+        if (BackgroundColorPreview is not null)
+            BackgroundColorPreview.Background = new SolidColorBrush(backgroundColor);
+    }
+
+    private static Color ParseColorOrDefault(string? value, Color fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return fallback;
+        try
+        {
+            var parsed = ColorConverter.ConvertFromString(value);
+            return parsed is Color c ? c : fallback;
+        }
+        catch { return fallback; }
+    }
+
+    private Color GetThemeTextColor()
+        => ParseColorOrDefault(_settings.TextColor, Color.FromRgb(0, 255, 102));
+
+    private void SetSurfaceBrushColor(string key, Color color)
+    {
+        if (Resources[key] is SolidColorBrush brush)
+        {
+            var opacity = brush.Opacity;
+            var replacement = new SolidColorBrush(color) { Opacity = opacity };
+            Resources[key] = replacement;
+        }
     }
 
     private void BackgroundChoose_Click(object sender, RoutedEventArgs e)
