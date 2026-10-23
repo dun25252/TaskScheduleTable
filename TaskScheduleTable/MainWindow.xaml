@@ -152,6 +152,7 @@
                             <Button x:Name="FontUpButton" Content="文字を大きくする" Click="FontUpButton_Click"/>
                             <Button x:Name="FontDownButton" Content="文字を小さくする" Click="FontDownButton_Click"/>
                             <Button x:Name="BackgroundButton" Content="背景" Click="BackgroundButton_Click"/>
+                            <Button x:Name="VoiceButton" Content="VOICE" Click="VoiceButton_Click"/>
                             <TextBlock x:Name="FontLabel" Style="{StaticResource ReadableTextStyle}" Text="文字サイズ: 13.0 pt" TextAlignment="Center" Margin="4,8,4,2"/>
                             <TextBlock x:Name="CtrlHint" Style="{StaticResource ReadableTextStyle}" Text="Ctrl + ホイールでも変更" Foreground="{DynamicResource TextColorBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="3" FontSize="9"/>
                         </StackPanel>
@@ -201,6 +202,25 @@
                         <Button x:Name="UrlSaveButton" Content="URLを挿入 / 変更" Click="UrlSaveButton_Click"/>
                         <Button x:Name="UrlDisableButton" Content="URLをなしに設定する" Click="UrlDisableButton_Click"/>
                         <Button x:Name="UrlDeleteButton" Content="URLを削除" Click="UrlDeleteButton_Click"/>
+                    </StackPanel>
+                </Border>
+            </Popup>
+
+            <Popup x:Name="VoicePopup" Placement="Right" StaysOpen="False" AllowsTransparency="True">
+                <Border Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" Padding="10" Width="300">
+                    <StackPanel>
+                        <TextBlock Text="VOICE" FontWeight="SemiBold" Margin="4" Effect="{DynamicResource TextHaloEffect}"/>
+                        <TextBlock Text="音量" Margin="4,8,4,0" Effect="{DynamicResource TextHaloEffect}"/>
+                        <DockPanel Margin="4">
+                            <TextBlock x:Name="VoiceVolumeLabel" DockPanel.Dock="Right" Width="52" TextAlignment="Right" VerticalAlignment="Center"
+                                       Effect="{DynamicResource TextHaloEffect}"/>
+                            <Slider x:Name="VoiceVolumeSlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="False"
+                                    ValueChanged="VoiceVolumeSlider_ValueChanged"/>
+                        </DockPanel>
+                        <Button Content="テスト再生" Click="VoiceTestButton_Click"/>
+                        <TextBlock Text="0%で無音、100%で元の音量です。設定は保存されます。"
+                                   Foreground="{DynamicResource TextColorBrush}" TextWrapping="Wrap" Margin="4,6,4,2" FontSize="10"
+                                   Effect="{DynamicResource TextHaloEffect}"/>
                     </StackPanel>
                 </Border>
             </Popup>
