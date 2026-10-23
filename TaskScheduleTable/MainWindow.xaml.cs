@@ -739,12 +739,14 @@ public partial class MainWindow : Window
         SetSurfaceBrushColor("ButtonFillBrush", backgroundColor);
         SetSurfaceBrushColor("RowFillBrush", backgroundColor);
 
-        if (Resources["TextHaloEffect"] is System.Windows.Media.Effects.DropShadowEffect halo)
+        var luminance = (0.2126 * textColor.R + 0.7152 * textColor.G + 0.0722 * textColor.B) / 255.0;
+        Resources["TextHaloEffect"] = new System.Windows.Media.Effects.DropShadowEffect
         {
-            var luminance = (0.2126 * textColor.R + 0.7152 * textColor.G + 0.0722 * textColor.B) / 255.0;
-            halo.Color = luminance >= 0.50 ? Colors.Black : Colors.White;
-            halo.Opacity = 1.0;
-        }
+            Color = luminance >= 0.50 ? Colors.Black : Colors.White,
+            ShadowDepth = 0,
+            BlurRadius = 3.2,
+            Opacity = 1.0
+        };
 
         if (TextColorPreview is not null)
             TextColorPreview.Background = new SolidColorBrush(textColor);
