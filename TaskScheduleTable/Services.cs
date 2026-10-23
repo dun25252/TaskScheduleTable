@@ -273,7 +273,7 @@ public sealed class VoiceService
 
     public void Queue(string baseName)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             var path = Path.Combine(_paths.VoiceDir, baseName + ".wav");
             if (!File.Exists(path))
