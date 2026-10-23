@@ -258,6 +258,17 @@ public sealed class VoiceService
     private readonly Queue<string> _queue = new();
     private readonly MediaPlayer _player = new();
     private bool _playing;
+    private double _volume = 1.0;
+
+    public double Volume
+    {
+        get => _volume;
+        set
+        {
+            _volume = Math.Clamp(value, 0.0, 1.0);
+            _player.Volume = _volume;
+        }
+    }
 
     public VoiceService(AppPaths paths, LogService log)
     {
@@ -294,6 +305,7 @@ public sealed class VoiceService
         {
             _playing = true;
             _player.Open(new Uri(path, UriKind.Absolute));
+            _player.Volume = _volume;
             _player.Play();
         }
         catch (Exception ex)
