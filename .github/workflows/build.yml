@@ -77,6 +77,19 @@ jobs:
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
           Compress-Archive -Path .\package\TaskScheduleTable_v2.0 -DestinationPath .\download\TaskScheduleTable_v2.0_RELEASE.zip -Force
 
+      - name: Verify release package
+        shell: pwsh
+        run: |
+          Remove-Item .\verify-release -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive .\download\TaskScheduleTable_v2.0_RELEASE.zip .\verify-release -Force
+          $root = Get-ChildItem .\verify-release -Directory | Select-Object -First 1
+          $exe = Join-Path $root.FullName 'タスク_予定表.exe'
+          if (-not (Test-Path $exe)) { throw 'Release EXE is missing.' }
+          $voices = @(Get-ChildItem (Join-Path $root.FullName 'Voice') -Filter '*.wav' -File)
+          if ($voices.Count -ne 22) { throw ('VOICE count validation failed: ' + $voices.Count) }
+          Write-Host ('RELEASE EXE: ' + $exe)
+          Write-Host ('VOICE COUNT: ' + $voices.Count)
+
       - name: Commit ready-to-run zip
         shell: pwsh
         run: |
