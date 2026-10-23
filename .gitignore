@@ -1,19 +1,12 @@
-# Runtime data and logs
-Data/
-Log/
-*.bak
-*.tmp
-startup_trace.txt
-bootstrap_trace.txt
-
-# Local / IDE files
+**/bin/
+**/obj/
+publish/
+artifacts/
 .vs/
 *.user
 *.suo
-
-# Build and distribution outputs
-*.exe
-*.zip
-
-# Voice assets are distributed with the release package.
-Voice/*.wav
+Data/
+Log/
+*_管理用.txt
+TaskScheduleTable/Voice/*.wav
+!TaskScheduleTable/Voice/README.md
