@@ -1,25 +1,29 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
       - 'TaskScheduleTable/**'
       - 'BUILD_v1.8.cmd'
       - '.github/workflows/build.yml'
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-win-x64:
+    if: github.actor != 'github-actions[bot]'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
       - name: Publish
         shell: pwsh
         run: |
@@ -32,6 +36,7 @@ jobs:
             -p:EnableCompressionInSingleFile=true `
             -p:PublishTrimmed=false `
             -o .\publish\win-x64
+
       - name: Verify
         shell: pwsh
         run: |
@@ -39,3 +44,37 @@ jobs:
           Write-Host ('EXE: ' + $exe.FullName)
           Write-Host ('SIZE: ' + $exe.Length)
           Get-FileHash $exe.FullName -Algorithm SHA256 | Format-List
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Remove-Item .\package -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v1.8\Voice | Out-Null
+          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v1.8\タスク_予定表.exe -Force
+          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v1.8\Voice\README.md -Force
+          @'
+          TaskScheduleTable v1.8 開発版
+
+          タスク_予定表.exe を起動してください。
+
+          Voiceフォルダー:
+          対応するWAVを入れると音声通知を使用できます。
+
+          データ保存先:
+          %LOCALAPPDATA%\TaskScheduleTable\Data
+          '@ | Set-Content .\package\TaskScheduleTable_v1.8\README.txt -Encoding UTF8
+          New-Item -ItemType Directory -Force -Path .\builds\v1.8-dev | Out-Null
+          Compress-Archive -Path .\package\TaskScheduleTable_v1.8 -DestinationPath .\builds\v1.8-dev\TaskScheduleTable_v1.8_win-x64.zip -Force
+
+      - name: Commit build
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f .\builds\v1.8-dev\TaskScheduleTable_v1.8_win-x64.zip
+          if (git diff --cached --quiet) {
+            Write-Host "Build archive unchanged."
+            exit 0
+          }
+          git commit -m "build: update v1.8 dev package"
+          git push origin HEAD:main
