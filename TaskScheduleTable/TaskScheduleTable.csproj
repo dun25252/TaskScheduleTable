@@ -8,9 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>タスク_予定表</AssemblyName>
     <RootNamespace>TaskScheduleTable</RootNamespace>
-    <Version>1.11.0</Version>
-    <AssemblyVersion>1.11.0.0</AssemblyVersion>
-    <FileVersion>1.11.0.0</FileVersion>
+    <Version>1.12.0</Version>
+    <AssemblyVersion>1.12.0.0</AssemblyVersion>
+    <FileVersion>1.12.0.0</FileVersion>
     <Product>タスク・予定表</Product>
     <Description>デスクトップ用タスク・予定表</Description>
     <Authors>Don</Authors>
