@@ -87,4 +87,5 @@ jobs:
           }
 
           git commit -m "build: update v2.0 release package"
+          git pull --rebase origin main
           git push origin HEAD:main
