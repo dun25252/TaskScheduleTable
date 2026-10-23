@@ -79,7 +79,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f .\download\TaskScheduleTable_v2.0_READY.zip
+          git add -f .\download\TaskScheduleTable_v2.0_RELEASE.zip
 
           if (git diff --cached --quiet) {
             Write-Host "RELEASE package unchanged."
