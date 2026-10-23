@@ -293,7 +293,7 @@ public partial class MainWindow : Window
             {
                 Text = "タスク / 予定はありません",
                 Foreground = new SolidColorBrush(GetThemeTextColor()),
-                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Margin = new Thickness(20),
                 FontSize = Math.Clamp(_settings.FontSize, 9, 16)
             });
@@ -316,7 +316,7 @@ public partial class MainWindow : Window
             BorderBrush = new SolidColorBrush(GetThemeTextColor()),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Tag = task.Id,
-            Cursor = Cursors.Hand,
+            Cursor = System.Windows.Input.Cursors.Hand,
             ClipToBounds = true
         };
         row.SetResourceReference(Border.BackgroundProperty, "RowFillBrush");
@@ -346,8 +346,8 @@ public partial class MainWindow : Window
         {
             Text = DeadlineText(task),
             Foreground = dueBrush,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            VerticalAlignment = System.Windows.VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
             FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 8, 13.5) : _settings.FontSize,
             Margin = new Thickness(2, 0, 2, 0),
@@ -359,7 +359,7 @@ public partial class MainWindow : Window
         {
             Text = task.Title,
             Foreground = dueBrush,
-            VerticalAlignment = VerticalAlignment.Center,
+            VerticalAlignment = System.Windows.VerticalAlignment.Center,
             Margin = new Thickness(ActualWidth < 520 ? 3 : 8, 0, ActualWidth < 520 ? 3 : 8, 0),
             BaseFontSize = _settings.FontSize,
             MinFitFontSize = 5.5,
@@ -757,7 +757,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(value)) return fallback;
         try
         {
-            var parsed = ColorConverter.ConvertFromString(value);
+            var parsed = System.Windows.Media.ColorConverter.ConvertFromString(value);
             return parsed is Color c ? c : fallback;
         }
         catch { return fallback; }
