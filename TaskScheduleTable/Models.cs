@@ -33,6 +33,8 @@ public sealed class AppSettingsModel
     public string BackgroundImagePath { get; set; } = "";
     public double BackgroundImageOpacity { get; set; } = 0.45;
     public double ReadabilityOverlayOpacity { get; set; } = 0.35;
+    public string TextColor { get; set; } = "#00FF66";
+    public string BackgroundColor { get; set; } = "#000000";
 }
 
 public sealed class NotificationState
