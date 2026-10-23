@@ -51,13 +51,13 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item .\package -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v1.10\Voice | Out-Null
+          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v1.11\Voice | Out-Null
 
-          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v1.10\タスク_予定表.exe -Force
-          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v1.10\Voice\README.md -Force
+          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v1.11\タスク_予定表.exe -Force
+          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v1.11\Voice\README.md -Force
 
           @'
-          タスク_予定表 v1.10
+          タスク_予定表 v1.11
 
           使い方:
           1. ZIPを展開
@@ -67,10 +67,10 @@ jobs:
 
           Voice:
           Voiceフォルダーに対応するWAVを入れると音声通知を使用できます。
-          '@ | Set-Content .\package\TaskScheduleTable_v1.10\README.txt -Encoding UTF8
+          '@ | Set-Content .\package\TaskScheduleTable_v1.11\README.txt -Encoding UTF8
 
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
-          Compress-Archive -Path .\package\TaskScheduleTable_v1.10 -DestinationPath .\download\TaskScheduleTable_v1.10_READY.zip -Force
+          Compress-Archive -Path .\package\TaskScheduleTable_v1.11 -DestinationPath .\download\TaskScheduleTable_v1.11_READY.zip -Force
 
       - name: Commit ready-to-run zip
         shell: pwsh
@@ -78,12 +78,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f .\download\TaskScheduleTable_v1.10_READY.zip
+          git add -f .\download\TaskScheduleTable_v1.11_READY.zip
 
           if (git diff --cached --quiet) {
             Write-Host "READY package unchanged."
             exit 0
           }
 
-          git commit -m "build: update v1.10 ready package"
+          git commit -m "build: update v1.11 ready package"
           git push origin HEAD:main
