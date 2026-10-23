@@ -69,7 +69,7 @@ public sealed class AutoFitTextBlock : TextBlock
             var formatted = new FormattedText(
                 Text,
                 CultureInfo.CurrentUICulture,
-                FlowDirection.LeftToRight,
+                System.Windows.FlowDirection.LeftToRight,
                 new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
                 size,
                 Foreground,
