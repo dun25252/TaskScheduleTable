@@ -5,7 +5,7 @@
         Title="タスク・予定表"
         Width="760" Height="390" MinWidth="400" MinHeight="250"
         WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False"
-        Background="#000000" Foreground="#00FF66" FontFamily="Yu Gothic UI"
+        Background="{DynamicResource BackgroundColorBrush}" Foreground="{DynamicResource TextColorBrush}" FontFamily="Yu Gothic UI"
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
         UseLayoutRounding="True" SnapsToDevicePixels="True">
     <shell:WindowChrome.WindowChrome>
@@ -13,7 +13,8 @@
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <SolidColorBrush x:Key="Green" Color="#00FF66"/>
+        <SolidColorBrush x:Key="TextColorBrush" Color="#00FF66"/>
+        <SolidColorBrush x:Key="BackgroundColorBrush" Color="#000000"/>
         <SolidColorBrush x:Key="DimGreen" Color="#008D3B"/>
         <SolidColorBrush x:Key="ChromeFillBrush" Color="#000000"/>
         <SolidColorBrush x:Key="PanelFillBrush" Color="#000000"/>
@@ -27,9 +28,9 @@
         </Style>
 
         <Style TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource Green}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Background" Value="{DynamicResource ButtonFillBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Green}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="3"/>
             <Setter Property="Padding" Value="8,4"/>
@@ -60,20 +61,20 @@
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="Foreground" Value="{StaticResource Green}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Background" Value="#F0050505"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Green}"/>
-            <Setter Property="CaretBrush" Value="{StaticResource Green}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource TextColorBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Padding" Value="6"/>
         </Style>
 
         <Style TargetType="Slider">
-            <Setter Property="Foreground" Value="{StaticResource Green}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
         </Style>
 
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="#000000"/>
-            <Setter Property="Foreground" Value="{StaticResource Green}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
             <Setter Property="Width" Value="11"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -87,7 +88,7 @@
                                     <Thumb MinHeight="24">
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#153D25" BorderBrush="#00FF66" BorderThickness="1" CornerRadius="2" Margin="1"/>
+                                                <Border Background="#153D25" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" CornerRadius="2" Margin="1"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -103,7 +104,7 @@
         </Style>
     </Window.Resources>
 
-    <Border BorderBrush="{StaticResource Green}" BorderThickness="1" Background="#000000" ClipToBounds="True">
+    <Border BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" Background="{DynamicResource BackgroundColorBrush}" ClipToBounds="True">
         <Grid x:Name="RootGrid" ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="TitleRow" Height="38"/>
@@ -112,19 +113,19 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.RowSpan="3" IsHitTestVisible="False" ClipToBounds="True">
-                <Border Background="#000000"/>
+                <Border x:Name="BackgroundBase" Background="{DynamicResource BackgroundColorBrush}"/>
                 <Image x:Name="BackgroundImage" Stretch="UniformToFill" Opacity="0"/>
                 <Border x:Name="BackgroundShade" Background="#000000" Opacity="0"/>
             </Grid>
 
-            <Border x:Name="TitleChrome" Grid.Row="0" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="0,0,0,1">
+            <Border x:Name="TitleChrome" Grid.Row="0" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="0,0,0,1">
                 <Grid x:Name="TitleBar" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="TitleText" Style="{StaticResource ReadableTextStyle}" Text="タスク・予定表" VerticalAlignment="Center" Margin="10,0,4,0"
-                               FontWeight="SemiBold" Foreground="{StaticResource Green}" TextTrimming="CharacterEllipsis"/>
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextColorBrush}" TextTrimming="CharacterEllipsis"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="LockButton" Content="位置固定: OFF" Click="LockButton_Click" MinWidth="92"/>
                         <Button x:Name="TopmostButton" Content="最前面: OFF" Click="TopmostButton_Click" MinWidth="92"/>
@@ -142,7 +143,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border x:Name="LeftPanel" Grid.Column="0" Background="{DynamicResource PanelFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="1" Padding="5">
+                <Border x:Name="LeftPanel" Grid.Column="0" Background="{DynamicResource PanelFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" Padding="5">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <Button x:Name="AddButton" Content="追加" Click="AddButton_Click"/>
@@ -152,18 +153,18 @@
                             <Button x:Name="FontDownButton" Content="文字を小さくする" Click="FontDownButton_Click"/>
                             <Button x:Name="BackgroundButton" Content="背景" Click="BackgroundButton_Click"/>
                             <TextBlock x:Name="FontLabel" Style="{StaticResource ReadableTextStyle}" Text="文字サイズ: 13.0 pt" TextAlignment="Center" Margin="4,8,4,2"/>
-                            <TextBlock x:Name="CtrlHint" Style="{StaticResource ReadableTextStyle}" Text="Ctrl + ホイールでも変更" Foreground="#00AA44" TextAlignment="Center" TextWrapping="Wrap" Margin="3" FontSize="9"/>
+                            <TextBlock x:Name="CtrlHint" Style="{StaticResource ReadableTextStyle}" Text="Ctrl + ホイールでも変更" Foreground="{DynamicResource TextColorBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="3" FontSize="9"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
 
-                <Border x:Name="TaskListPanel" Grid.Column="2" Background="{DynamicResource PanelFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="1">
+                <Border x:Name="TaskListPanel" Grid.Column="2" Background="{DynamicResource PanelFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition x:Name="HeaderRow" Height="34"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border x:Name="TaskHeaderPanel" Grid.Row="0" Background="{DynamicResource HeaderFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="0,0,0,1">
+                        <Border x:Name="TaskHeaderPanel" Grid.Row="0" Background="{DynamicResource HeaderFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="0,0,0,1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition x:Name="HeaderUrlColumn" Width="54"/>
@@ -183,16 +184,16 @@
                 </Border>
             </Grid>
 
-            <Border x:Name="StatusChrome" Grid.Row="2" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="0,1,0,0">
+            <Border x:Name="StatusChrome" Grid.Row="2" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="0,1,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBlock x:Name="StatusText" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="デスクトップ用タスク・予定表" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock x:Name="CountText" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="0 件" Foreground="#00AA44" VerticalAlignment="Center" Margin="8,0"/>
+                    <TextBlock x:Name="CountText" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="0 件" Foreground="{DynamicResource TextColorBrush}" VerticalAlignment="Center" Margin="8,0"/>
                 </Grid>
             </Border>
 
             <Popup x:Name="UrlPopup" Placement="Right" StaysOpen="False" AllowsTransparency="True">
-                <Border Background="#F5000000" BorderBrush="{StaticResource Green}" BorderThickness="1" Padding="8" Width="310">
+                <Border Background="#F5000000" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" Padding="8" Width="310">
                     <StackPanel>
                         <TextBlock Text="URL" Margin="3"/>
                         <TextBox x:Name="UrlPopupText" Margin="3"/>
@@ -205,7 +206,7 @@
             </Popup>
 
             <Popup x:Name="BackgroundPopup" Placement="Right" StaysOpen="False" AllowsTransparency="True">
-                <Border Background="#F5000000" BorderBrush="{StaticResource Green}" BorderThickness="1" Padding="10" Width="310">
+                <Border x:Name="BackgroundPopupPanel" Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1" Padding="10" Width="330">
                     <StackPanel>
                         <TextBlock Text="背景画像" FontWeight="SemiBold" Margin="4"/>
                         <Button Content="画像を選択" Click="BackgroundChoose_Click"/>
@@ -223,10 +224,26 @@
                             <Slider x:Name="ReadabilityOpacitySlider" Minimum="0" Maximum="70" TickFrequency="1" IsSnapToTickEnabled="False"
                                     ValueChanged="ReadabilityOpacitySlider_ValueChanged"/>
                         </DockPanel>
+                        <TextBlock Text="文字・枠の色" Margin="4,10,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <DockPanel Margin="4">
+                            <Border x:Name="TextColorPreview" DockPanel.Dock="Right" Width="34" Height="22" Margin="6,0,0,0"
+                                    Background="{DynamicResource TextColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1"/>
+                            <Button Content="色を選ぶ" Click="TextColorChoose_Click"/>
+                        </DockPanel>
+
+                        <TextBlock Text="背景色" Margin="4,8,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <DockPanel Margin="4">
+                            <Border x:Name="BackgroundColorPreview" DockPanel.Dock="Right" Width="34" Height="22" Margin="6,0,0,0"
+                                    Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1"/>
+                            <Button Content="色を選ぶ" Click="BackgroundColorChoose_Click"/>
+                        </DockPanel>
+
+                        <Button Content="色を初期値に戻す" Click="ResetColors_Click"/>
+
                         <TextBlock Text="背景100%でも文字の後ろだけ黒くできます。0%なら写真をそのまま表示します。"
-                                   Foreground="#00CC55" TextWrapping="Wrap" Margin="4,2,4,6" FontSize="10"
+                                   Foreground="{DynamicResource TextColorBrush}" TextWrapping="Wrap" Margin="4,2,4,6" FontSize="10"
                                    Effect="{StaticResource TextHaloEffect}"/>
-                        <TextBlock Text="選んだ画像はアプリ用フォルダーへコピーして保存します。" Foreground="#00AA44" TextWrapping="Wrap" Margin="4,8,4,2" FontSize="10"
+                        <TextBlock Text="選んだ画像はアプリ用フォルダーへコピーして保存します。" Foreground="{DynamicResource TextColorBrush}" TextWrapping="Wrap" Margin="4,8,4,2" FontSize="10"
                                    Effect="{StaticResource TextHaloEffect}"/>
                     </StackPanel>
                 </Border>
