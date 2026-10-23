@@ -24,6 +24,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             try { AppServices.Log.WriteError("未処理UIエラー", args.Exception); } catch { }
+            try { AppServices.Voice.Queue("エラーが発生しました。"); } catch { }
             MessageBox.Show("エラーが発生しました。Log\\Error を確認してください。", "タスク・予定表",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
@@ -34,7 +35,10 @@ public partial class App : Application
             try
             {
                 if (args.ExceptionObject is Exception ex)
+                {
                     AppServices.Log.WriteError("未処理アプリケーションエラー", ex);
+                    try { AppServices.Voice.Queue("エラーが発生しました。"); } catch { }
+                }
             }
             catch { }
         };
