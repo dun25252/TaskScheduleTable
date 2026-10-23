@@ -20,6 +20,11 @@
         <SolidColorBrush x:Key="HeaderFillBrush" Color="#000000"/>
         <SolidColorBrush x:Key="ButtonFillBrush" Color="#050505"/>
         <SolidColorBrush x:Key="RowFillBrush" Color="#000000"/>
+        <DropShadowEffect x:Key="TextHaloEffect" Color="#000000" ShadowDepth="0" BlurRadius="3.2" Opacity="1"/>
+
+        <Style x:Key="ReadableTextStyle" TargetType="TextBlock">
+            <Setter Property="Effect" Value="{StaticResource TextHaloEffect}"/>
+        </Style>
 
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="{StaticResource Green}"/>
@@ -35,7 +40,8 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"
+                                              Effect="{StaticResource TextHaloEffect}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -117,7 +123,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="TitleText" Text="タスク・予定表" VerticalAlignment="Center" Margin="10,0,4,0"
+                    <TextBlock x:Name="TitleText" Style="{StaticResource ReadableTextStyle}" Text="タスク・予定表" VerticalAlignment="Center" Margin="10,0,4,0"
                                FontWeight="SemiBold" Foreground="{StaticResource Green}" TextTrimming="CharacterEllipsis"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="LockButton" Content="位置固定: OFF" Click="LockButton_Click" MinWidth="92"/>
@@ -145,8 +151,8 @@
                             <Button x:Name="FontUpButton" Content="文字を大きくする" Click="FontUpButton_Click"/>
                             <Button x:Name="FontDownButton" Content="文字を小さくする" Click="FontDownButton_Click"/>
                             <Button x:Name="BackgroundButton" Content="背景" Click="BackgroundButton_Click"/>
-                            <TextBlock x:Name="FontLabel" Text="文字サイズ: 13.0 pt" TextAlignment="Center" Margin="4,8,4,2"/>
-                            <TextBlock x:Name="CtrlHint" Text="Ctrl + ホイールでも変更" Foreground="#00AA44" TextAlignment="Center" TextWrapping="Wrap" Margin="3" FontSize="9"/>
+                            <TextBlock x:Name="FontLabel" Style="{StaticResource ReadableTextStyle}" Text="文字サイズ: 13.0 pt" TextAlignment="Center" Margin="4,8,4,2"/>
+                            <TextBlock x:Name="CtrlHint" Style="{StaticResource ReadableTextStyle}" Text="Ctrl + ホイールでも変更" Foreground="#00AA44" TextAlignment="Center" TextWrapping="Wrap" Margin="3" FontSize="9"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
@@ -164,9 +170,9 @@
                                     <ColumnDefinition x:Name="HeaderDeadlineColumn" Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="UrlHeader" Grid.Column="0" Text="URL" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="DeadlineHeader" Grid.Column="1" Text="期限日" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TaskTitleHeader" Grid.Column="2" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="UrlHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="URL" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="DeadlineHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="期限日" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TaskTitleHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="2" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </Border>
                         <ScrollViewer x:Name="TaskScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
@@ -180,8 +186,8 @@
             <Border x:Name="StatusChrome" Grid.Row="2" Background="{DynamicResource ChromeFillBrush}" BorderBrush="{StaticResource Green}" BorderThickness="0,1,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatusText" Grid.Column="0" Text="デスクトップ用タスク・予定表" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock x:Name="CountText" Grid.Column="1" Text="0 件" Foreground="#00AA44" VerticalAlignment="Center" Margin="8,0"/>
+                    <TextBlock x:Name="StatusText" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="デスクトップ用タスク・予定表" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="CountText" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="0 件" Foreground="#00AA44" VerticalAlignment="Center" Margin="8,0"/>
                 </Grid>
             </Border>
 
@@ -210,7 +216,18 @@
                             <Slider x:Name="BackgroundOpacitySlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="False"
                                     ValueChanged="BackgroundOpacitySlider_ValueChanged"/>
                         </DockPanel>
-                        <TextBlock Text="選んだ画像はアプリ用フォルダーへコピーして保存します。" Foreground="#00AA44" TextWrapping="Wrap" Margin="4,8,4,2" FontSize="10"/>
+                        <TextBlock Text="文字背景の濃さ" Margin="4,10,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <DockPanel Margin="4">
+                            <TextBlock x:Name="ReadabilityOpacityLabel" DockPanel.Dock="Right" Width="52" TextAlignment="Right" VerticalAlignment="Center"
+                                       Effect="{StaticResource TextHaloEffect}"/>
+                            <Slider x:Name="ReadabilityOpacitySlider" Minimum="0" Maximum="70" TickFrequency="1" IsSnapToTickEnabled="False"
+                                    ValueChanged="ReadabilityOpacitySlider_ValueChanged"/>
+                        </DockPanel>
+                        <TextBlock Text="背景100%でも文字の後ろだけ黒くできます。0%なら写真をそのまま表示します。"
+                                   Foreground="#00CC55" TextWrapping="Wrap" Margin="4,2,4,6" FontSize="10"
+                                   Effect="{StaticResource TextHaloEffect}"/>
+                        <TextBlock Text="選んだ画像はアプリ用フォルダーへコピーして保存します。" Foreground="#00AA44" TextWrapping="Wrap" Margin="4,8,4,2" FontSize="10"
+                                   Effect="{StaticResource TextHaloEffect}"/>
                     </StackPanel>
                 </Border>
             </Popup>
