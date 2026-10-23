@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>タスク_予定表</AssemblyName>
+    <RootNamespace>TaskScheduleTable</RootNamespace>
+    <Version>1.8.0</Version>
+    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <FileVersion>1.8.0.0</FileVersion>
+    <Product>タスク・予定表</Product>
+    <Description>デスクトップ用タスク・予定表</Description>
+    <Authors>Don</Authors>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Utf8Output>true</Utf8Output>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Voice\**\*.wav" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
