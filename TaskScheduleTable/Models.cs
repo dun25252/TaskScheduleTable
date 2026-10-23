@@ -32,6 +32,7 @@ public sealed class AppSettingsModel
     public bool Topmost { get; set; }
     public string BackgroundImagePath { get; set; } = "";
     public double BackgroundImageOpacity { get; set; } = 0.45;
+    public double ReadabilityOverlayOpacity { get; set; } = 0.35;
 }
 
 public sealed class NotificationState
