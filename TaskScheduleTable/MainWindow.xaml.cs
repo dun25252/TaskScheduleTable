@@ -701,6 +701,7 @@ public partial class MainWindow : Window
 
     private void ReadabilityOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
+        if (BackgroundImage is null) return;
         _settings.ReadabilityOverlayOpacity = Math.Clamp(e.NewValue / 100.0, 0, 0.70);
         ApplyBackgroundVisibility();
         UpdateReadabilityOpacityLabel();
