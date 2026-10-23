@@ -36,6 +36,7 @@ public sealed class AppSettingsModel
     public string TextColor { get; set; } = "#00FF66";
     public string BackgroundColor { get; set; } = "#000000";
     public double VoiceVolume { get; set; } = 1.0;
+    public double VoiceVolume { get; set; } = 1.0;
 }
 
 public sealed class NotificationState
