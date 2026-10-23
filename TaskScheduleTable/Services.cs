@@ -259,6 +259,7 @@ public sealed class VoiceService
     private readonly MediaPlayer _player = new();
     private bool _playing;
     private double _volume = 1.0;
+    private double _volume = 1.0;
 
     public double Volume
     {
@@ -281,6 +282,17 @@ public sealed class VoiceService
             FinishCurrent();
         };
     }
+
+    public void SetVolume(double value)
+    {
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            _volume = Math.Clamp(value, 0.0, 1.0);
+            _player.Volume = _volume;
+        });
+    }
+
+    public double GetVolume() => _volume;
 
     public void Queue(string baseName)
     {
