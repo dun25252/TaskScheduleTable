@@ -63,6 +63,8 @@ public partial class MainWindow : Window
         {
             _tasks = AppServices.Data.LoadTasks();
             _settings = AppServices.Data.LoadSettings();
+            _settings.VoiceVolume = Math.Clamp(_settings.VoiceVolume, 0.0, 1.0);
+            AppServices.Voice.Volume = _settings.VoiceVolume;
             _notificationState = AppServices.Data.LoadNotifications();
             foreach (var key in _notificationState.Keys) _notificationKeys.Add(key);
 
@@ -122,6 +124,8 @@ public partial class MainWindow : Window
             BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
             ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
             ApplyThemeColors();
+            VoiceVolumeSlider.Value = Math.Clamp(_settings.VoiceVolume * 100.0, 0, 100);
+            UpdateVoiceVolumeLabel();
             UpdateBackgroundOpacityLabel();
             UpdateReadabilityOpacityLabel();
         }
@@ -250,7 +254,7 @@ public partial class MainWindow : Window
         UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = headerFont;
 
         var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 11) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 13) : Math.Clamp(_settings.FontSize, 9, 18);
-        foreach (var button in new[] { AddButton, EditButton, DeleteButton, FontUpButton, FontDownButton, BackgroundButton })
+        foreach (var button in new[] { AddButton, EditButton, DeleteButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
         {
             button.FontSize = buttonFont;
             button.MinHeight = ultraShort ? 24 : shortHeight ? 27 : 32;
@@ -658,6 +662,34 @@ public partial class MainWindow : Window
         RefreshTasks();
     }
 
+    private void VoiceButton_Click(object sender, RoutedEventArgs e)
+    {
+        VoicePopup.PlacementTarget = VoiceButton;
+        VoiceVolumeSlider.Value = Math.Clamp(_settings.VoiceVolume * 100.0, 0, 100);
+        UpdateVoiceVolumeLabel();
+        VoicePopup.IsOpen = true;
+    }
+
+    private void VoiceVolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (VoiceVolumeSlider is null) return;
+        _settings.VoiceVolume = Math.Clamp(e.NewValue / 100.0, 0.0, 1.0);
+        AppServices.Voice.Volume = _settings.VoiceVolume;
+        UpdateVoiceVolumeLabel();
+        if (_initialized) ScheduleSaveSettings();
+    }
+
+    private void UpdateVoiceVolumeLabel()
+    {
+        if (VoiceVolumeLabel is not null)
+            VoiceVolumeLabel.Text = $"{Math.Round(_settings.VoiceVolume * 100):0}%";
+    }
+
+    private void VoiceTestButton_Click(object sender, RoutedEventArgs e)
+    {
+        AppServices.Voice.Queue("予定表が起動しました");
+    }
+
     private void BackgroundButton_Click(object sender, RoutedEventArgs e)
     {
         BackgroundPopup.PlacementTarget = BackgroundButton;
@@ -671,38 +703,50 @@ public partial class MainWindow : Window
 
     private void TextColorChoose_Click(object sender, RoutedEventArgs e)
     {
-        var chosen = ShowColorDialog(_settings.TextColor);
-        if (chosen is null) return;
+        var before = _settings.TextColor;
+        var chosen = ShowColorDialog(before);
+        if (chosen is null || string.Equals(chosen, before, StringComparison.OrdinalIgnoreCase)) return;
 
+        var wasDefault = string.Equals(before, "#00FF66", StringComparison.OrdinalIgnoreCase);
         _settings.TextColor = chosen;
         ApplyThemeColors();
         ApplyBackgroundVisibility();
         RefreshTasks();
         AppServices.Data.SaveSettings(_settings);
+        AppServices.Voice.Queue(wasDefault ? "文字の色を設定しました" : "文字の色を変更しました");
         UpdateStatus($"文字色を {_settings.TextColor} に変更しました。");
     }
 
     private void BackgroundColorChoose_Click(object sender, RoutedEventArgs e)
     {
-        var chosen = ShowColorDialog(_settings.BackgroundColor);
-        if (chosen is null) return;
+        var before = _settings.BackgroundColor;
+        var chosen = ShowColorDialog(before);
+        if (chosen is null || string.Equals(chosen, before, StringComparison.OrdinalIgnoreCase)) return;
 
+        var wasDefault = string.Equals(before, "#000000", StringComparison.OrdinalIgnoreCase);
         _settings.BackgroundColor = chosen;
         ApplyThemeColors();
         ApplyBackgroundVisibility();
         RefreshTasks();
         AppServices.Data.SaveSettings(_settings);
+        AppServices.Voice.Queue(wasDefault ? "背景を設定しました" : "背景を変更しました");
         UpdateStatus($"背景色を {_settings.BackgroundColor} に変更しました。");
     }
 
     private void ResetColors_Click(object sender, RoutedEventArgs e)
     {
+        var textChanged = !string.Equals(_settings.TextColor, "#00FF66", StringComparison.OrdinalIgnoreCase);
+        var backgroundChanged = !string.Equals(_settings.BackgroundColor, "#000000", StringComparison.OrdinalIgnoreCase);
+
         _settings.TextColor = "#00FF66";
         _settings.BackgroundColor = "#000000";
         ApplyThemeColors();
         ApplyBackgroundVisibility();
         RefreshTasks();
         AppServices.Data.SaveSettings(_settings);
+
+        if (textChanged) AppServices.Voice.Queue("文字の色を変更しました");
+        if (backgroundChanged) AppServices.Voice.Queue("背景を変更しました");
         UpdateStatus("文字色と背景色を初期値に戻しました。");
     }
 
@@ -788,10 +832,12 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) != true) return;
         try
         {
+            var hadBackground = !string.IsNullOrWhiteSpace(_settings.BackgroundImagePath) && File.Exists(_settings.BackgroundImagePath);
             _settings.BackgroundImagePath = AppServices.Background.Import(dialog.FileName);
             if (_settings.BackgroundImageOpacity <= 0) _settings.BackgroundImageOpacity = 0.45;
             ApplyBackground();
             AppServices.Data.SaveSettings(_settings);
+            AppServices.Voice.Queue(hadBackground ? "背景を変更しました" : "背景を設定しました");
             UpdateStatus("背景画像を設定しました。");
         }
         catch (Exception ex)
@@ -807,6 +853,7 @@ public partial class MainWindow : Window
         _settings.BackgroundImagePath = "";
         ApplyBackground();
         AppServices.Data.SaveSettings(_settings);
+        AppServices.Voice.Queue("背景を変更しました");
         BackgroundPopup.IsOpen = false;
         UpdateStatus("背景画像を解除しました。");
     }
