@@ -24,7 +24,7 @@
         <DropShadowEffect x:Key="TextHaloEffect" Color="#000000" ShadowDepth="0" BlurRadius="3.2" Opacity="1"/>
 
         <Style x:Key="ReadableTextStyle" TargetType="TextBlock">
-            <Setter Property="Effect" Value="{StaticResource TextHaloEffect}"/>
+            <Setter Property="Effect" Value="{DynamicResource TextHaloEffect}"/>
         </Style>
 
         <Style TargetType="Button">
@@ -42,7 +42,7 @@
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"
-                                              Effect="{StaticResource TextHaloEffect}"/>
+                                              Effect="{DynamicResource TextHaloEffect}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -217,21 +217,21 @@
                             <Slider x:Name="BackgroundOpacitySlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="False"
                                     ValueChanged="BackgroundOpacitySlider_ValueChanged"/>
                         </DockPanel>
-                        <TextBlock Text="文字背景の濃さ" Margin="4,10,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <TextBlock Text="文字背景の濃さ" Margin="4,10,4,0" Effect="{DynamicResource TextHaloEffect}"/>
                         <DockPanel Margin="4">
                             <TextBlock x:Name="ReadabilityOpacityLabel" DockPanel.Dock="Right" Width="52" TextAlignment="Right" VerticalAlignment="Center"
-                                       Effect="{StaticResource TextHaloEffect}"/>
+                                       Effect="{DynamicResource TextHaloEffect}"/>
                             <Slider x:Name="ReadabilityOpacitySlider" Minimum="0" Maximum="70" TickFrequency="1" IsSnapToTickEnabled="False"
                                     ValueChanged="ReadabilityOpacitySlider_ValueChanged"/>
                         </DockPanel>
-                        <TextBlock Text="文字・枠の色" Margin="4,10,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <TextBlock Text="文字・枠の色" Margin="4,10,4,0" Effect="{DynamicResource TextHaloEffect}"/>
                         <DockPanel Margin="4">
                             <Border x:Name="TextColorPreview" DockPanel.Dock="Right" Width="34" Height="22" Margin="6,0,0,0"
                                     Background="{DynamicResource TextColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1"/>
                             <Button Content="色を選ぶ" Click="TextColorChoose_Click"/>
                         </DockPanel>
 
-                        <TextBlock Text="背景色" Margin="4,8,4,0" Effect="{StaticResource TextHaloEffect}"/>
+                        <TextBlock Text="背景色" Margin="4,8,4,0" Effect="{DynamicResource TextHaloEffect}"/>
                         <DockPanel Margin="4">
                             <Border x:Name="BackgroundColorPreview" DockPanel.Dock="Right" Width="34" Height="22" Margin="6,0,0,0"
                                     Background="{DynamicResource BackgroundColorBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="1"/>
@@ -242,9 +242,9 @@
 
                         <TextBlock Text="背景100%でも文字の後ろだけ黒くできます。0%なら写真をそのまま表示します。"
                                    Foreground="{DynamicResource TextColorBrush}" TextWrapping="Wrap" Margin="4,2,4,6" FontSize="10"
-                                   Effect="{StaticResource TextHaloEffect}"/>
+                                   Effect="{DynamicResource TextHaloEffect}"/>
                         <TextBlock Text="選んだ画像はアプリ用フォルダーへコピーして保存します。" Foreground="{DynamicResource TextColorBrush}" TextWrapping="Wrap" Margin="4,8,4,2" FontSize="10"
-                                   Effect="{StaticResource TextHaloEffect}"/>
+                                   Effect="{DynamicResource TextHaloEffect}"/>
                     </StackPanel>
                 </Border>
             </Popup>
