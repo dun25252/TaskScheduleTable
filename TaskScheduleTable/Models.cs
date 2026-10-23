@@ -35,6 +35,7 @@ public sealed class AppSettingsModel
     public double ReadabilityOverlayOpacity { get; set; } = 0.35;
     public string TextColor { get; set; } = "#00FF66";
     public string BackgroundColor { get; set; } = "#000000";
+    public double VoiceVolume { get; set; } = 1.0;
 }
 
 public sealed class NotificationState
