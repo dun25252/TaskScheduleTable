@@ -32,16 +32,10 @@ jobs:
             -p:EnableCompressionInSingleFile=true `
             -p:PublishTrimmed=false `
             -o .\publish\win-x64
-      - name: Package
+      - name: Verify
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path .\artifact\TaskScheduleTable_v1.8 | Out-Null
-          Copy-Item .\publish\win-x64\* .\artifact\TaskScheduleTable_v1.8\ -Recurse -Force
-          New-Item -ItemType Directory -Force -Path .\artifact\TaskScheduleTable_v1.8\Voice | Out-Null
-          Copy-Item .\TaskScheduleTable\Voice\README.md .\artifact\TaskScheduleTable_v1.8\Voice\README.md -Force
-          Compress-Archive -Path .\artifact\TaskScheduleTable_v1.8 -DestinationPath .\TaskScheduleTable_v1.8_win-x64.zip -Force
-      - uses: actions/upload-artifact@v4
-        with:
-          name: TaskScheduleTable_v1.8_win-x64
-          path: TaskScheduleTable_v1.8_win-x64.zip
-          if-no-files-found: error
+          $exe = Get-Item '.\publish\win-x64\タスク_予定表.exe'
+          Write-Host ('EXE: ' + $exe.FullName)
+          Write-Host ('SIZE: ' + $exe.Length)
+          Get-FileHash $exe.FullName -Algorithm SHA256 | Format-List
