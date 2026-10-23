@@ -1,5 +1,7 @@
 # Voice
 
+Voicepark 重音テトを使用。
+
 v2.0では配布ZIPにVOICEを同梱します。
 
 収録:
