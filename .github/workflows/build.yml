@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: task-schedule-main-build
+  cancel-in-progress: true
+
 jobs:
   build-win-x64:
     if: github.actor != 'github-actions[bot]'
