@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'TaskScheduleTable/**'
+      - 'BUILD_v1.8.cmd'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-win-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish
+        shell: pwsh
+        run: |
+          dotnet publish .\TaskScheduleTable\TaskScheduleTable.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:PublishTrimmed=false `
+            -o .\publish\win-x64
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\artifact\TaskScheduleTable_v1.8 | Out-Null
+          Copy-Item .\publish\win-x64\* .\artifact\TaskScheduleTable_v1.8\ -Recurse -Force
+          New-Item -ItemType Directory -Force -Path .\artifact\TaskScheduleTable_v1.8\Voice | Out-Null
+          Copy-Item .\TaskScheduleTable\Voice\README.md .\artifact\TaskScheduleTable_v1.8\Voice\README.md -Force
+          Compress-Archive -Path .\artifact\TaskScheduleTable_v1.8 -DestinationPath .\TaskScheduleTable_v1.8_win-x64.zip -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TaskScheduleTable_v1.8_win-x64
+          path: TaskScheduleTable_v1.8_win-x64.zip
+          if-no-files-found: error
