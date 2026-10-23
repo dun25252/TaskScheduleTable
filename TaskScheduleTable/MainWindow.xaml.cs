@@ -307,11 +307,11 @@ public partial class MainWindow : Window
             Height = CurrentRowHeight(),
             BorderBrush = new SolidColorBrush(Color.FromRgb(0, 110, 44)),
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = new SolidColorBrush(Color.FromArgb(172, 0, 0, 0)),
             Tag = task.Id,
             Cursor = Cursors.Hand,
             ClipToBounds = true
         };
+        row.SetResourceReference(Border.BackgroundProperty, "RowFillBrush");
 
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowUrlWidth) });
@@ -688,8 +688,7 @@ public partial class MainWindow : Window
     {
         if (BackgroundImage is null) return;
         _settings.BackgroundImageOpacity = Math.Clamp(e.NewValue / 100.0, 0, 1);
-        BackgroundImage.Opacity = _settings.BackgroundImageOpacity;
-        BackgroundShade.Opacity = BackgroundImage.Source is null ? 0 : Math.Clamp(0.42 - (_settings.BackgroundImageOpacity * 0.15), 0.20, 0.42);
+        ApplyBackgroundVisibility();
         UpdateBackgroundOpacityLabel();
         if (_initialized) ScheduleSaveSettings();
     }
@@ -715,8 +714,7 @@ public partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             {
                 BackgroundImage.Source = null;
-                BackgroundImage.Opacity = 0;
-                BackgroundShade.Opacity = 0;
+                ApplyBackgroundVisibility();
                 return;
             }
 
@@ -727,16 +725,52 @@ public partial class MainWindow : Window
             bitmap.EndInit();
             bitmap.Freeze();
             BackgroundImage.Source = bitmap;
-            BackgroundImage.Opacity = Math.Clamp(_settings.BackgroundImageOpacity, 0, 1);
-            BackgroundShade.Opacity = Math.Clamp(0.42 - (_settings.BackgroundImageOpacity * 0.15), 0.20, 0.42);
+            ApplyBackgroundVisibility();
             UpdateBackgroundOpacityLabel();
         }
         catch (Exception ex)
         {
             BackgroundImage.Source = null;
-            BackgroundImage.Opacity = 0;
-            BackgroundShade.Opacity = 0;
+            ApplyBackgroundVisibility();
             AppServices.Log.WriteError("背景画像読込エラー", ex);
+        }
+    }
+
+    private void ApplyBackgroundVisibility()
+    {
+        var hasImage = BackgroundImage.Source is not null;
+        var visibility = Math.Clamp(_settings.BackgroundImageOpacity, 0, 1);
+
+        // 背景画像がある場合は画像自体を常に100%描画し、
+        // 全面の黒レイヤーだけを反比例させる。
+        // 100% = 黒レイヤーなし / 0% = 完全な黒背景。
+        BackgroundImage.Opacity = hasImage ? 1.0 : 0.0;
+        BackgroundShade.Opacity = hasImage ? 1.0 - visibility : 0.0;
+
+        // 背景画像がある間は、タイトル・左右パネル・行・ボタンの黒塗りを消す。
+        // これにより100%設定時は写真をGUI全面でそのまま確認できる。
+        var surfaceOpacity = hasImage ? 0.0 : 1.0;
+        SetSurfaceBrushOpacity("ChromeFillBrush", surfaceOpacity);
+        SetSurfaceBrushOpacity("PanelFillBrush", surfaceOpacity);
+        SetSurfaceBrushOpacity("HeaderFillBrush", surfaceOpacity);
+        SetSurfaceBrushOpacity("RowFillBrush", surfaceOpacity);
+        SetSurfaceBrushOpacity("ButtonFillBrush", hasImage ? 0.0 : 0.85);
+    }
+
+    private void SetSurfaceBrushOpacity(string key, double opacity)
+    {
+        if (Resources[key] is SolidColorBrush brush)
+        {
+            if (brush.IsFrozen)
+            {
+                var clone = brush.Clone();
+                clone.Opacity = opacity;
+                Resources[key] = clone;
+            }
+            else
+            {
+                brush.Opacity = opacity;
+            }
         }
     }
 
