@@ -6,7 +6,7 @@
 
 `download/TaskScheduleTable_v2.0_RELEASE.zip`
 
-ZIPを展開して `タスク_予定表.exe` を起動するだけです。
+ZIPを展開して`download/TaskScheduleTable_v2.0_RELEASE`から `タスク_予定表.exe` を起動するだけです。
 
 ## 主な機能
 
