@@ -10,11 +10,13 @@ public sealed class AutoFitTextBlock : TextBlock
 {
     public static readonly DependencyProperty BaseFontSizeProperty = DependencyProperty.Register(
         nameof(BaseFontSize), typeof(double), typeof(AutoFitTextBlock),
-        new FrameworkPropertyMetadata(13d, FrameworkPropertyMetadataOptions.AffectsMeasure, (_, _) => { }));
+        new FrameworkPropertyMetadata(13d, FrameworkPropertyMetadataOptions.AffectsMeasure,
+            (d, _) => ((AutoFitTextBlock)d).QueueFit()));
 
     public static readonly DependencyProperty MinFitFontSizeProperty = DependencyProperty.Register(
         nameof(MinFitFontSize), typeof(double), typeof(AutoFitTextBlock),
-        new FrameworkPropertyMetadata(6d));
+        new FrameworkPropertyMetadata(6d, FrameworkPropertyMetadataOptions.AffectsMeasure,
+            (d, _) => ((AutoFitTextBlock)d).QueueFit()));
 
     private bool _pending;
 
