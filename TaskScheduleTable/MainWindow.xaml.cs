@@ -388,8 +388,7 @@ public partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowUrlWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeadlineWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowOrderWidth) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeleteWidth) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowActionWidth) });
 
         var complete = new System.Windows.Controls.CheckBox
         {
@@ -398,8 +397,8 @@ public partial class MainWindow : Window
             ToolTip = task.Completed ? "完了を取り消す" : "完了にする",
             Focusable = false,
             LayoutTransform = new ScaleTransform(
-                ActualWidth < 520 ? 1.0 : Math.Clamp(_settings.FontSize / 13.0, 1.0, 1.55),
-                ActualWidth < 520 ? 1.0 : Math.Clamp(_settings.FontSize / 13.0, 1.0, 1.55))
+                ActualWidth < 520 ? 0.92 : Math.Clamp(_settings.FontSize / 14.0, 1.0, 1.35),
+                ActualWidth < 520 ? 0.92 : Math.Clamp(_settings.FontSize / 14.0, 1.0, 1.35))
         };
         complete.Click += (_, e) =>
         {
@@ -408,13 +407,16 @@ public partial class MainWindow : Window
         };
         Grid.SetColumn(complete, 0);
 
+        var urlSize = ActualWidth < 520 ? 22.0 : 26.0;
         var url = new Button
         {
             Content = task.UrlEnabled && !string.IsNullOrWhiteSpace(task.Url) ? "●" : "○",
             Tag = task.Id,
-            Padding = new Thickness(1),
-            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
-            FontSize = Math.Clamp(_settings.FontSize, 8, 30),
+            Width = urlSize,
+            Height = urlSize,
+            Padding = new Thickness(0),
+            Margin = new Thickness(1),
+            FontSize = Math.Clamp(_settings.FontSize * 0.72, 8, 16),
             ToolTip = "URLメニュー"
         };
         url.Click += (sender, e) =>
@@ -431,10 +433,13 @@ public partial class MainWindow : Window
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 7.5, 18) : Math.Clamp(_settings.FontSize, 8, 30),
+            FontSize = ActualWidth < 520
+                ? Math.Clamp(_settings.FontSize * 0.78, 7.5, 15)
+                : Math.Clamp(_settings.FontSize * 0.90, 8, 24),
             Margin = new Thickness(2, 0, 2, 0),
             Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
-            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
+            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null,
+            ToolTip = DateTimeText(task)
         };
         Grid.SetColumn(deadline, 2);
 
@@ -443,80 +448,40 @@ public partial class MainWindow : Window
             Text = task.Title,
             Foreground = dueBrush,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
-            Margin = new Thickness(ActualWidth < 520 ? 3 : 8, 0, ActualWidth < 520 ? 3 : 8, 0),
+            Margin = new Thickness(ActualWidth < 520 ? 4 : 8, 0, ActualWidth < 520 ? 4 : 8, 0),
             BaseFontSize = _settings.FontSize,
             MinFitFontSize = 6.0,
             FontWeight = FontWeights.SemiBold,
-            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : task.Details,
+            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : $"{task.Title}\n\n{task.Details}",
             Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
             TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
         };
         Grid.SetColumn(title, 3);
 
-        var orderPanel = new Grid { Margin = new Thickness(1) };
-        orderPanel.ColumnDefinitions.Add(new ColumnDefinition());
-        orderPanel.ColumnDefinitions.Add(new ColumnDefinition());
-
-        var up = new Button
+        var actionSize = ActualWidth < 520 ? 24.0 : 28.0;
+        var action = new Button
         {
-            Content = "▲",
+            Content = "…",
+            Width = actionSize,
+            Height = actionSize,
             Padding = new Thickness(0),
             Margin = new Thickness(1),
-            MinHeight = 20,
-            FontSize = Math.Clamp(_settings.FontSize * 0.75, 8, 18),
-            ToolTip = "上へ。期限順の場合は手動順へ切り替えます。"
-        };
-        up.Click += (_, e) =>
-        {
-            e.Handled = true;
-            MoveTask(task, -1);
-        };
-        Grid.SetColumn(up, 0);
-
-        var down = new Button
-        {
-            Content = "▼",
-            Padding = new Thickness(0),
-            Margin = new Thickness(1),
-            MinHeight = 20,
-            FontSize = Math.Clamp(_settings.FontSize * 0.75, 8, 18),
-            ToolTip = "下へ。期限順の場合は手動順へ切り替えます。"
-        };
-        down.Click += (_, e) =>
-        {
-            e.Handled = true;
-            MoveTask(task, 1);
-        };
-        Grid.SetColumn(down, 1);
-
-        orderPanel.Children.Add(up);
-        orderPanel.Children.Add(down);
-        Grid.SetColumn(orderPanel, 4);
-
-        var delete = new Button
-        {
-            Content = "×",
-            Padding = new Thickness(0),
-            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
-            MinHeight = 20,
-            FontSize = Math.Clamp(_settings.FontSize, 9, 24),
+            FontSize = Math.Clamp(_settings.FontSize, 11, 20),
             FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(Color.FromRgb(255, 72, 84)),
-            ToolTip = "完全に削除"
+            ToolTip = "順番変更 / 完全削除"
         };
-        delete.Click += (_, e) =>
+        action.Click += (_, e) =>
         {
             e.Handled = true;
-            DeleteTask(task);
+            OpenTaskActionMenu(task, action);
         };
-        Grid.SetColumn(delete, 5);
+        Grid.SetColumn(action, 4);
 
         grid.Children.Add(complete);
         grid.Children.Add(url);
         grid.Children.Add(deadline);
         grid.Children.Add(title);
-        grid.Children.Add(orderPanel);
-        grid.Children.Add(delete);
+        grid.Children.Add(action);
         row.Child = grid;
 
         row.MouseLeftButtonUp += (_, e) =>
@@ -531,6 +496,52 @@ public partial class MainWindow : Window
         };
 
         return row;
+    }
+
+    private void OpenTaskActionMenu(TaskItem task, Button button)
+    {
+        var textColor = new SolidColorBrush(GetThemeTextColor());
+        var backgroundColor = new SolidColorBrush(ParseColorOrDefault(_settings.BackgroundColor, Colors.Black));
+
+        var menu = new System.Windows.Controls.ContextMenu
+        {
+            PlacementTarget = button,
+            Placement = PlacementMode.Bottom,
+            Background = backgroundColor,
+            BorderBrush = textColor,
+            Foreground = textColor,
+            BorderThickness = new Thickness(1)
+        };
+
+        var up = new System.Windows.Controls.MenuItem
+        {
+            Header = "▲ 上へ移動",
+            Foreground = textColor,
+            Background = backgroundColor
+        };
+        up.Click += (_, _) => MoveTask(task, -1);
+
+        var down = new System.Windows.Controls.MenuItem
+        {
+            Header = "▼ 下へ移動",
+            Foreground = textColor,
+            Background = backgroundColor
+        };
+        down.Click += (_, _) => MoveTask(task, 1);
+
+        var delete = new System.Windows.Controls.MenuItem
+        {
+            Header = "完全に削除",
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 82, 92)),
+            Background = backgroundColor
+        };
+        delete.Click += (_, _) => DeleteTask(task);
+
+        menu.Items.Add(up);
+        menu.Items.Add(down);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(delete);
+        menu.IsOpen = true;
     }
 
     private void SetCompleted(TaskItem task, bool completed)
