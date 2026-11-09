@@ -312,7 +312,9 @@ public partial class MainWindow : Window
         var offset = TaskScroll.VerticalOffset;
         TaskPanel.Children.Clear();
 
-        if (_tasks.Count == 0)
+        var displayTasks = GetDisplayTasks().ToList();
+
+        if (displayTasks.Count == 0)
         {
             TaskPanel.Children.Add(new TextBlock
             {
@@ -320,16 +322,44 @@ public partial class MainWindow : Window
                 Foreground = new SolidColorBrush(GetThemeTextColor()),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Margin = new Thickness(20),
-                FontSize = Math.Clamp(_settings.FontSize, 9, 16)
+                FontSize = Math.Clamp(_settings.FontSize, 8, 30)
             });
         }
         else
         {
-            foreach (var task in _tasks) TaskPanel.Children.Add(CreateTaskRow(task));
+            foreach (var task in displayTasks) TaskPanel.Children.Add(CreateTaskRow(task));
         }
 
         UpdateCountText();
+        SortButton.Content = _settings.SortMode == "Manual" ? "並び: 手動" : "並び: 期限順";
         Dispatcher.BeginInvoke(new Action(() => TaskScroll.ScrollToVerticalOffset(offset)), DispatcherPriority.Loaded);
+    }
+
+    private IEnumerable<TaskItem> GetDisplayTasks()
+    {
+        if (_settings.SortMode == "Manual")
+        {
+            return _tasks
+                .OrderBy(x => x.ManualOrder <= 0 ? int.MaxValue : x.ManualOrder)
+                .ThenBy(x => x.Created, StringComparer.Ordinal);
+        }
+
+        return _tasks
+            .OrderBy(x => x.Completed ? 1 : 0)
+            .ThenBy(x => TryGetTaskStartDateTime(x, out _) ? 0 : 1)
+            .ThenBy(x => TryGetTaskStartDateTime(x, out var dt) ? dt : DateTime.MaxValue)
+            .ThenBy(x => x.ManualOrder <= 0 ? int.MaxValue : x.ManualOrder)
+            .ThenBy(x => x.Created, StringComparer.Ordinal);
+    }
+
+    private void NormalizeManualOrder(IEnumerable<TaskItem> ordered)
+    {
+        var order = 10;
+        foreach (var task in ordered)
+        {
+            task.ManualOrder = order;
+            order += 10;
+        }
     }
 
     private void UpdateCountText()
@@ -347,7 +377,7 @@ public partial class MainWindow : Window
             BorderBrush = new SolidColorBrush(GetThemeTextColor()),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Tag = task.Id,
-            Cursor = System.Windows.Input.Cursors.Hand,
+            Cursor = System.Windows.Input.Cursors.Arrow,
             ClipToBounds = true,
             Opacity = task.Completed ? 0.62 : 1.0
         };
@@ -358,21 +388,23 @@ public partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowUrlWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeadlineWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowOrderWidth) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeleteWidth) });
 
-        var complete = new Button
+        var complete = new CheckBox
         {
-            Content = task.Completed ? "✓" : "○",
+            IsChecked = task.Completed,
             Tag = task.Id,
-            Padding = new Thickness(1),
-            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
-            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 9, 14) : Math.Max(11, _settings.FontSize),
-            FontWeight = FontWeights.Bold,
-            ToolTip = task.Completed ? "完了を取り消す" : "完了にする"
+            ToolTip = task.Completed ? "完了を取り消す" : "完了にする",
+            Focusable = false,
+            LayoutTransform = new ScaleTransform(
+                ActualWidth < 520 ? 1.0 : Math.Clamp(_settings.FontSize / 13.0, 1.0, 1.55),
+                ActualWidth < 520 ? 1.0 : Math.Clamp(_settings.FontSize / 13.0, 1.0, 1.55))
         };
         complete.Click += (_, e) =>
         {
             e.Handled = true;
-            ToggleCompleted(task);
+            SetCompleted(task, complete.IsChecked == true);
         };
         Grid.SetColumn(complete, 0);
 
@@ -381,8 +413,8 @@ public partial class MainWindow : Window
             Content = task.UrlEnabled && !string.IsNullOrWhiteSpace(task.Url) ? "●" : "○",
             Tag = task.Id,
             Padding = new Thickness(1),
-            Margin = new Thickness(ActualWidth < 520 ? 3 : 5),
-            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 9, 14) : Math.Max(11, _settings.FontSize),
+            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
+            FontSize = Math.Clamp(_settings.FontSize, 8, 30),
             ToolTip = "URLメニュー"
         };
         url.Click += (sender, e) =>
@@ -399,7 +431,7 @@ public partial class MainWindow : Window
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 7.5, 12.5) : Math.Clamp(_settings.FontSize, 9, 15),
+            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 7.5, 18) : Math.Clamp(_settings.FontSize, 8, 30),
             Margin = new Thickness(2, 0, 2, 0),
             Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
             TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
@@ -413,7 +445,7 @@ public partial class MainWindow : Window
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
             Margin = new Thickness(ActualWidth < 520 ? 3 : 8, 0, ActualWidth < 520 ? 3 : 8, 0),
             BaseFontSize = _settings.FontSize,
-            MinFitFontSize = 5.5,
+            MinFitFontSize = 6.0,
             FontWeight = FontWeights.SemiBold,
             ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : task.Details,
             Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
@@ -421,10 +453,70 @@ public partial class MainWindow : Window
         };
         Grid.SetColumn(title, 3);
 
+        var orderPanel = new Grid { Margin = new Thickness(1) };
+        orderPanel.ColumnDefinitions.Add(new ColumnDefinition());
+        orderPanel.ColumnDefinitions.Add(new ColumnDefinition());
+
+        var up = new Button
+        {
+            Content = "▲",
+            Padding = new Thickness(0),
+            Margin = new Thickness(1),
+            MinHeight = 20,
+            FontSize = Math.Clamp(_settings.FontSize * 0.75, 8, 18),
+            ToolTip = "上へ。期限順の場合は手動順へ切り替えます。"
+        };
+        up.Click += (_, e) =>
+        {
+            e.Handled = true;
+            MoveTask(task, -1);
+        };
+        Grid.SetColumn(up, 0);
+
+        var down = new Button
+        {
+            Content = "▼",
+            Padding = new Thickness(0),
+            Margin = new Thickness(1),
+            MinHeight = 20,
+            FontSize = Math.Clamp(_settings.FontSize * 0.75, 8, 18),
+            ToolTip = "下へ。期限順の場合は手動順へ切り替えます。"
+        };
+        down.Click += (_, e) =>
+        {
+            e.Handled = true;
+            MoveTask(task, 1);
+        };
+        Grid.SetColumn(down, 1);
+
+        orderPanel.Children.Add(up);
+        orderPanel.Children.Add(down);
+        Grid.SetColumn(orderPanel, 4);
+
+        var delete = new Button
+        {
+            Content = "×",
+            Padding = new Thickness(0),
+            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
+            MinHeight = 20,
+            FontSize = Math.Clamp(_settings.FontSize, 9, 24),
+            FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 72, 84)),
+            ToolTip = "完全に削除"
+        };
+        delete.Click += (_, e) =>
+        {
+            e.Handled = true;
+            DeleteTask(task);
+        };
+        Grid.SetColumn(delete, 5);
+
         grid.Children.Add(complete);
         grid.Children.Add(url);
         grid.Children.Add(deadline);
         grid.Children.Add(title);
+        grid.Children.Add(orderPanel);
+        grid.Children.Add(delete);
         row.Child = grid;
 
         row.MouseLeftButtonUp += (_, e) =>
@@ -436,27 +528,65 @@ public partial class MainWindow : Window
                 EditTask(task);
                 e.Handled = true;
             }
-            else if (_mode == SelectMode.Delete)
-            {
-                _mode = SelectMode.Normal;
-                UpdateStatus();
-                DeleteTask(task);
-                e.Handled = true;
-            }
         };
 
         return row;
     }
 
-    private void ToggleCompleted(TaskItem task)
+    private void SetCompleted(TaskItem task, bool completed)
     {
-        task.Completed = !task.Completed;
-        task.CompletedAt = task.Completed ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : "";
+        task.Completed = completed;
+        task.CompletedAt = completed ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : "";
         task.Updated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         AppServices.Data.SaveTasks(_tasks);
         AppServices.Log.Write($"完了状態変更: {task.Type} / {task.Title} / {(task.Completed ? "完了" : "未完了")}");
         RefreshTasks();
         UpdateStatus(task.Completed ? $"「{task.Title}」を完了にしました。" : $"「{task.Title}」を未完了に戻しました。");
+    }
+
+    private void MoveTask(TaskItem task, int direction)
+    {
+        if (_settings.SortMode != "Manual")
+        {
+            NormalizeManualOrder(GetDisplayTasks().ToList());
+            _settings.SortMode = "Manual";
+        }
+
+        var ordered = _tasks.OrderBy(x => x.ManualOrder).ThenBy(x => x.Created, StringComparer.Ordinal).ToList();
+        var index = ordered.FindIndex(x => x.Id == task.Id);
+        var otherIndex = index + direction;
+        if (index < 0 || otherIndex < 0 || otherIndex >= ordered.Count)
+        {
+            RefreshTasks();
+            return;
+        }
+
+        (ordered[index].ManualOrder, ordered[otherIndex].ManualOrder) =
+            (ordered[otherIndex].ManualOrder, ordered[index].ManualOrder);
+
+        AppServices.Data.SaveTasks(_tasks);
+        AppServices.Data.SaveSettings(_settings);
+        RefreshTasks();
+        UpdateStatus("手動順に切り替えて順番を変更しました。");
+    }
+
+    private void SortButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_settings.SortMode == "Manual")
+        {
+            _settings.SortMode = "Deadline";
+            UpdateStatus("期限が近い順に並び替えました。");
+        }
+        else
+        {
+            NormalizeManualOrder(GetDisplayTasks().ToList());
+            _settings.SortMode = "Manual";
+            AppServices.Data.SaveTasks(_tasks);
+            UpdateStatus("手動順に切り替えました。▲▼で変更できます。");
+        }
+
+        AppServices.Data.SaveSettings(_settings);
+        RefreshTasks();
     }
 
     private static string DateTimeText(TaskItem task)
