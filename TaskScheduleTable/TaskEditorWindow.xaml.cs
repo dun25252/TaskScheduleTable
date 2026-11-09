@@ -284,6 +284,7 @@ public partial class TaskEditorWindow : Window
             CompletedAt = completed
                 ? (_existing?.Completed == true && !string.IsNullOrWhiteSpace(_existing.CompletedAt) ? _existing.CompletedAt : now)
                 : "",
+            ManualOrder = _existing?.ManualOrder ?? 0,
             Created = _existing?.Created ?? now,
             Updated = now
         };
