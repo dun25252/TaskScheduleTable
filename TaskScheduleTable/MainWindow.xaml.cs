@@ -271,10 +271,10 @@ public partial class MainWindow : Window
 
         var titleFont = ultra ? Math.Clamp(_settings.FontSize * 0.62, 8.5, 11.5) : compact ? Math.Clamp(_settings.FontSize * 0.82, 10, 15) : _settings.FontSize;
         TitleText.FontSize = titleFont;
-        var headerFont = ultra ? Math.Clamp(_settings.FontSize * 0.7, 8, 10) : veryCompact ? Math.Clamp(_settings.FontSize * 0.75, 8, 12) : Math.Clamp(_settings.FontSize, 9, 16);
+        var headerFont = ultra ? Math.Clamp(_settings.FontSize * 0.72, 8, 15) : veryCompact ? Math.Clamp(_settings.FontSize * 0.82, 8, 19) : Math.Clamp(_settings.FontSize, 9, 24);
         CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = OrderHeader.FontSize = DeleteHeader.FontSize = headerFont;
 
-        var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 11) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 13) : Math.Clamp(_settings.FontSize, 9, 18);
+        var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 14) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 18) : Math.Clamp(_settings.FontSize, 9, 26);
         foreach (var button in new[] { AddButton, EditButton, SortButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
         {
             button.FontSize = buttonFont;
@@ -288,8 +288,8 @@ public partial class MainWindow : Window
 
         FontLabel.Visibility = ultraShort ? Visibility.Collapsed : Visibility.Visible;
         CtrlHint.Visibility = shortHeight ? Visibility.Collapsed : Visibility.Visible;
-        FontLabel.FontSize = Math.Clamp(_settings.FontSize, 8, 14);
-        StatusText.FontSize = CountText.FontSize = ultraShort ? Math.Clamp(_settings.FontSize, 8, 11.5) : Math.Clamp(_settings.FontSize, 9, 16);
+        FontLabel.FontSize = Math.Clamp(_settings.FontSize, 8, 22);
+        StatusText.FontSize = CountText.FontSize = ultraShort ? Math.Clamp(_settings.FontSize, 8, 14) : Math.Clamp(_settings.FontSize, 9, 24);
 
         TitleRow.Height = new GridLength(ultraShort ? 29 : Math.Max(33, Math.Ceiling(titleFont * 1.35 + 8)));
         HeaderRow.Height = new GridLength(ultraShort ? 26 : Math.Max(29, Math.Ceiling(headerFont * 1.25 + 7)));
@@ -301,9 +301,9 @@ public partial class MainWindow : Window
     private double CurrentRowHeight()
     {
         var h = ActualHeight > 0 ? ActualHeight : Height;
-        if (h < 285) return Math.Clamp(_settings.FontSize * 1.35 + 8, 30, 38);
-        if (h < 335) return Math.Clamp(_settings.FontSize * 1.55 + 8, 34, 43);
-        return Math.Clamp(_settings.FontSize * 1.85 + 8, 38, 55);
+        if (h < 285) return Math.Clamp(_settings.FontSize * 1.35 + 8, 30, 50);
+        if (h < 335) return Math.Clamp(_settings.FontSize * 1.55 + 8, 34, 62);
+        return Math.Clamp(_settings.FontSize * 1.85 + 8, 38, 80);
     }
 
     private void RefreshTasks()
@@ -665,6 +665,8 @@ public partial class MainWindow : Window
         var editor = CreateEditor(null);
         if (editor.ShowDialog() != true || editor.Result is null) return;
         var task = editor.Result;
+        if (task.ManualOrder <= 0)
+            task.ManualOrder = _tasks.Count == 0 ? 10 : _tasks.Max(x => x.ManualOrder) + 10;
         _tasks.Add(task);
         AppServices.Data.SaveTasks(_tasks);
         AppServices.Log.Write($"新規作成: {task.Type} / {task.Title}");
@@ -690,12 +692,6 @@ public partial class MainWindow : Window
         UpdateStatus();
     }
 
-    private void DeleteButton_Click(object sender, RoutedEventArgs e)
-    {
-        _mode = _mode == SelectMode.Delete ? SelectMode.Normal : SelectMode.Delete;
-        UpdateStatus();
-    }
-
     private void EditTask(TaskItem original)
     {
         var before = CloneTask(original);
@@ -716,7 +712,7 @@ public partial class MainWindow : Window
         Id = t.Id, Type = t.Type, Title = t.Title, Details = t.Details, Url = t.Url, UrlEnabled = t.UrlEnabled,
         Deadline = t.Deadline, DeadlineEnabled = t.DeadlineEnabled, DeadlineYearExplicit = t.DeadlineYearExplicit,
         DeadlineMetadataKnown = t.DeadlineMetadataKnown, StartTime = t.StartTime, EndDate = t.EndDate, EndTime = t.EndTime,
-        Completed = t.Completed, CompletedAt = t.CompletedAt, Created = t.Created, Updated = t.Updated
+        Completed = t.Completed, CompletedAt = t.CompletedAt, ManualOrder = t.ManualOrder, Created = t.Created, Updated = t.Updated
     };
 
     private static void QueueEditVoices(TaskItem before, TaskItem after)
@@ -752,31 +748,41 @@ public partial class MainWindow : Window
         var result = MessageBox.Show($"「{task.Title}」を削除しますか？", "削除確認", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes) return;
         _tasks.RemoveAll(x => x.Id == task.Id);
+        if (_settings.SortMode == "Manual") NormalizeManualOrder(_tasks.OrderBy(x => x.ManualOrder).ThenBy(x => x.Created, StringComparer.Ordinal));
         AppServices.Data.SaveTasks(_tasks);
         AppServices.Log.Write($"削除: {task.Type} / {task.Title}");
         AppServices.Voice.Queue(task.Type == "予定" ? "予定を削除しました" : "タスクを削除しました");
         RefreshTasks();
     }
 
-    private void FontUpButton_Click(object sender, RoutedEventArgs e) => ChangeFontSize(0.5);
-    private void FontDownButton_Click(object sender, RoutedEventArgs e) => ChangeFontSize(-0.5);
+    private void FontUpButton_Click(object sender, RoutedEventArgs e) => ChangeFontSize(1.0);
+    private void FontDownButton_Click(object sender, RoutedEventArgs e) => ChangeFontSize(-1.0);
 
     private void ChangeFontSize(double delta)
     {
         var value = Math.Clamp(_settings.FontSize + delta, 8, 30);
         if (Math.Abs(value - _settings.FontSize) < 0.01) return;
+
         _settings.FontSize = value;
         FontSize = value;
+        FontLabel.Text = $"文字サイズ: {_settings.FontSize:0.0} pt";
+
         UpdateResponsiveLayout();
         RefreshTasks();
-        ScheduleSaveSettings();
+        AppServices.Data.SaveSettings(_settings);
+
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            UpdateResponsiveLayout();
+            RefreshTasks();
+        }));
     }
 
     private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
         {
-            ChangeFontSize(e.Delta > 0 ? 0.5 : -0.5);
+            ChangeFontSize(e.Delta > 0 ? 1.0 : -1.0);
             e.Handled = true;
         }
     }
@@ -790,12 +796,9 @@ public partial class MainWindow : Window
 
     private void UpdateStatus(string? text = null)
     {
-        StatusText.Text = text ?? (_mode switch
-        {
-            SelectMode.Edit => "編集するタスク / 予定を選択してください。",
-            SelectMode.Delete => "削除するタスク / 予定を選択してください。",
-            _ => "デスクトップ用タスク・予定表"
-        });
+        StatusText.Text = text ?? (_mode == SelectMode.Edit
+            ? "編集するタスク / 予定を選択してください。"
+            : "デスクトップ用タスク・予定表");
         UpdateCountText();
     }
 
