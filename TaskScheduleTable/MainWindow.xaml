@@ -72,6 +72,13 @@
             <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
         </Style>
 
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="{DynamicResource BackgroundColorBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextColorBrush}"/>
@@ -148,7 +155,7 @@
                         <StackPanel>
                             <Button x:Name="AddButton" Content="追加" Click="AddButton_Click"/>
                             <Button x:Name="EditButton" Content="編集" Click="EditButton_Click"/>
-                            <Button x:Name="DeleteButton" Content="削除" Click="DeleteButton_Click"/>
+                            <Button x:Name="SortButton" Content="並び: 期限順" Click="SortButton_Click"/>
                             <Button x:Name="FontUpButton" Content="文字を大きくする" Click="FontUpButton_Click"/>
                             <Button x:Name="FontDownButton" Content="文字を小さくする" Click="FontDownButton_Click"/>
                             <Button x:Name="BackgroundButton" Content="背景" Click="BackgroundButton_Click"/>
@@ -172,11 +179,15 @@
                                     <ColumnDefinition x:Name="HeaderUrlColumn" Width="54"/>
                                     <ColumnDefinition x:Name="HeaderDeadlineColumn" Width="150"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition x:Name="HeaderOrderColumn" Width="62"/>
+                                    <ColumnDefinition x:Name="HeaderDeleteColumn" Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock x:Name="CompleteHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="完了" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="UrlHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="URL" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="DeadlineHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="2" Text="日時" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="TaskTitleHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="3" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="OrderHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="4" Text="順番" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="DeleteHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="5" Text="削除" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
                         <ScrollViewer x:Name="TaskScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
