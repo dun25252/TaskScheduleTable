@@ -74,7 +74,7 @@ public sealed class LogService
     {
         var text = new StringBuilder()
             .AppendLine("APP=タスク_予定表")
-            .AppendLine("VERSION=2.0")
+            .AppendLine("VERSION=2.1")
             .AppendLine($"DATETIME={DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}")
             .AppendLine($"MESSAGE={message}")
             .AppendLine("EXCEPTION_BEGIN")
@@ -137,6 +137,10 @@ public sealed class DataService
             t.Details ??= "";
             t.Url ??= "";
             t.Deadline ??= "";
+            t.StartTime ??= "";
+            t.EndDate ??= "";
+            t.EndTime ??= "";
+            t.CompletedAt ??= "";
             if (string.IsNullOrWhiteSpace(t.Created)) t.Created = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             if (string.IsNullOrWhiteSpace(t.Updated)) t.Updated = t.Created;
         }
