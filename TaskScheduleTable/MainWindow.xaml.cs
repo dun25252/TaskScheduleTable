@@ -18,7 +18,7 @@ namespace TaskScheduleTable;
 
 public partial class MainWindow : Window
 {
-    private enum SelectMode { Normal, Edit, Delete }
+    private enum SelectMode { Normal, Edit }
 
     private List<TaskItem> _tasks = [];
     private AppSettingsModel _settings = new();
@@ -31,6 +31,8 @@ public partial class MainWindow : Window
     private double _rowCompleteWidth = 46;
     private double _rowUrlWidth = 54;
     private double _rowDeadlineWidth = 150;
+    private double _rowOrderWidth = 62;
+    private double _rowDeleteWidth = 46;
 
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly DispatcherTimer _layoutTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
@@ -65,6 +67,7 @@ public partial class MainWindow : Window
             _tasks = AppServices.Data.LoadTasks();
             _settings = AppServices.Data.LoadSettings();
             _settings.VoiceVolume = Math.Clamp(_settings.VoiceVolume, 0.0, 1.0);
+            if (_settings.SortMode != "Manual") _settings.SortMode = "Deadline";
             AppServices.Voice.Volume = _settings.VoiceVolume;
             _notificationState = AppServices.Data.LoadNotifications();
             foreach (var key in _notificationState.Keys) _notificationKeys.Add(key);
@@ -122,6 +125,7 @@ public partial class MainWindow : Window
             LockButton.Content = _settings.Locked ? "位置固定: ON" : "位置固定: OFF";
             TopmostButton.Content = _settings.Topmost ? "最前面: ON" : "最前面: OFF";
             FontLabel.Text = $"文字サイズ: {_settings.FontSize:0.0} pt";
+            SortButton.Content = _settings.SortMode == "Manual" ? "並び: 手動" : "並び: 期限順";
 
             BackgroundOpacitySlider.Value = Math.Clamp(_settings.BackgroundImageOpacity * 100.0, 0, 100);
             ReadabilityOpacitySlider.Value = Math.Clamp(_settings.ReadabilityOverlayOpacity * 100.0, 0, 70);
@@ -198,9 +202,11 @@ public partial class MainWindow : Window
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
             BackgroundButton.Content = "背景";
-            _rowCompleteWidth = 32;
-            _rowUrlWidth = 35;
-            _rowDeadlineWidth = 92;
+            _rowCompleteWidth = 30;
+            _rowUrlWidth = 32;
+            _rowDeadlineWidth = 80;
+            _rowOrderWidth = 50;
+            _rowDeleteWidth = 34;
         }
         else if (veryCompact)
         {
@@ -214,9 +220,11 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
-            _rowCompleteWidth = 36;
-            _rowUrlWidth = 41;
-            _rowDeadlineWidth = 110;
+            _rowCompleteWidth = 34;
+            _rowUrlWidth = 38;
+            _rowDeadlineWidth = 100;
+            _rowOrderWidth = 54;
+            _rowDeleteWidth = 38;
         }
         else if (compact)
         {
@@ -230,9 +238,11 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
-            _rowCompleteWidth = 40;
-            _rowUrlWidth = 47;
-            _rowDeadlineWidth = 130;
+            _rowCompleteWidth = 38;
+            _rowUrlWidth = 44;
+            _rowDeadlineWidth = 120;
+            _rowOrderWidth = 58;
+            _rowDeleteWidth = 42;
         }
         else
         {
@@ -249,19 +259,23 @@ public partial class MainWindow : Window
             _rowCompleteWidth = 46;
             _rowUrlWidth = 54;
             _rowDeadlineWidth = 150;
+            _rowOrderWidth = 62;
+            _rowDeleteWidth = 46;
         }
 
         HeaderCompleteColumn.Width = new GridLength(_rowCompleteWidth);
         HeaderUrlColumn.Width = new GridLength(_rowUrlWidth);
         HeaderDeadlineColumn.Width = new GridLength(_rowDeadlineWidth);
+        HeaderOrderColumn.Width = new GridLength(_rowOrderWidth);
+        HeaderDeleteColumn.Width = new GridLength(_rowDeleteWidth);
 
         var titleFont = ultra ? Math.Clamp(_settings.FontSize * 0.62, 8.5, 11.5) : compact ? Math.Clamp(_settings.FontSize * 0.82, 10, 15) : _settings.FontSize;
         TitleText.FontSize = titleFont;
         var headerFont = ultra ? Math.Clamp(_settings.FontSize * 0.7, 8, 10) : veryCompact ? Math.Clamp(_settings.FontSize * 0.75, 8, 12) : Math.Clamp(_settings.FontSize, 9, 16);
-        CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = headerFont;
+        CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = OrderHeader.FontSize = DeleteHeader.FontSize = headerFont;
 
         var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 11) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 13) : Math.Clamp(_settings.FontSize, 9, 18);
-        foreach (var button in new[] { AddButton, EditButton, DeleteButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
+        foreach (var button in new[] { AddButton, EditButton, SortButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
         {
             button.FontSize = buttonFont;
             button.MinHeight = ultraShort ? 24 : shortHeight ? 27 : 32;
