@@ -28,8 +28,9 @@ public partial class MainWindow : Window
     private TaskItem? _urlPopupTask;
     private bool _initialized;
     private bool _restoring;
+    private double _rowCompleteWidth = 46;
     private double _rowUrlWidth = 54;
-    private double _rowDeadlineWidth = 96;
+    private double _rowDeadlineWidth = 150;
 
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly DispatcherTimer _layoutTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
@@ -197,8 +198,9 @@ public partial class MainWindow : Window
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
             BackgroundButton.Content = "背景";
+            _rowCompleteWidth = 32;
             _rowUrlWidth = 35;
-            _rowDeadlineWidth = 60;
+            _rowDeadlineWidth = 92;
         }
         else if (veryCompact)
         {
@@ -212,8 +214,9 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
+            _rowCompleteWidth = 36;
             _rowUrlWidth = 41;
-            _rowDeadlineWidth = 70;
+            _rowDeadlineWidth = 110;
         }
         else if (compact)
         {
@@ -227,8 +230,9 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
+            _rowCompleteWidth = 40;
             _rowUrlWidth = 47;
-            _rowDeadlineWidth = 84;
+            _rowDeadlineWidth = 130;
         }
         else
         {
@@ -242,17 +246,19 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字を大きくする";
             FontDownButton.Content = "文字を小さくする";
+            _rowCompleteWidth = 46;
             _rowUrlWidth = 54;
-            _rowDeadlineWidth = 96;
+            _rowDeadlineWidth = 150;
         }
 
+        HeaderCompleteColumn.Width = new GridLength(_rowCompleteWidth);
         HeaderUrlColumn.Width = new GridLength(_rowUrlWidth);
         HeaderDeadlineColumn.Width = new GridLength(_rowDeadlineWidth);
 
         var titleFont = ultra ? Math.Clamp(_settings.FontSize * 0.62, 8.5, 11.5) : compact ? Math.Clamp(_settings.FontSize * 0.82, 10, 15) : _settings.FontSize;
         TitleText.FontSize = titleFont;
         var headerFont = ultra ? Math.Clamp(_settings.FontSize * 0.7, 8, 10) : veryCompact ? Math.Clamp(_settings.FontSize * 0.75, 8, 12) : Math.Clamp(_settings.FontSize, 9, 16);
-        UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = headerFont;
+        CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = headerFont;
 
         var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 11) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 13) : Math.Clamp(_settings.FontSize, 9, 18);
         foreach (var button in new[] { AddButton, EditButton, DeleteButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
@@ -308,8 +314,14 @@ public partial class MainWindow : Window
             foreach (var task in _tasks) TaskPanel.Children.Add(CreateTaskRow(task));
         }
 
-        CountText.Text = $"{_tasks.Count} 件";
+        UpdateCountText();
         Dispatcher.BeginInvoke(new Action(() => TaskScroll.ScrollToVerticalOffset(offset)), DispatcherPriority.Loaded);
+    }
+
+    private void UpdateCountText()
+    {
+        var completed = _tasks.Count(x => x.Completed);
+        CountText.Text = completed > 0 ? $"{_tasks.Count} 件 / 完了 {completed}" : $"{_tasks.Count} 件";
     }
 
     private UIElement CreateTaskRow(TaskItem task)
@@ -322,14 +334,33 @@ public partial class MainWindow : Window
             BorderThickness = new Thickness(0, 0, 0, 1),
             Tag = task.Id,
             Cursor = System.Windows.Input.Cursors.Hand,
-            ClipToBounds = true
+            ClipToBounds = true,
+            Opacity = task.Completed ? 0.62 : 1.0
         };
         row.SetResourceReference(Border.BackgroundProperty, "RowFillBrush");
 
         var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowCompleteWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowUrlWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeadlineWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        var complete = new Button
+        {
+            Content = task.Completed ? "✓" : "○",
+            Tag = task.Id,
+            Padding = new Thickness(1),
+            Margin = new Thickness(ActualWidth < 520 ? 2 : 4),
+            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 9, 14) : Math.Max(11, _settings.FontSize),
+            FontWeight = FontWeights.Bold,
+            ToolTip = task.Completed ? "完了を取り消す" : "完了にする"
+        };
+        complete.Click += (_, e) =>
+        {
+            e.Handled = true;
+            ToggleCompleted(task);
+        };
+        Grid.SetColumn(complete, 0);
 
         var url = new Button
         {
@@ -340,25 +371,26 @@ public partial class MainWindow : Window
             FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 9, 14) : Math.Max(11, _settings.FontSize),
             ToolTip = "URLメニュー"
         };
-        url.Click += (s, e) =>
+        url.Click += (sender, e) =>
         {
             e.Handled = true;
-            OpenUrlPopup(task, (Button)s);
+            OpenUrlPopup(task, (Button)sender);
         };
-        Grid.SetColumn(url, 0);
+        Grid.SetColumn(url, 1);
 
         var deadline = new TextBlock
         {
-            Text = DeadlineText(task),
+            Text = DateTimeText(task),
             Foreground = dueBrush,
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 8, 13.5) : _settings.FontSize,
+            FontSize = ActualWidth < 520 ? Math.Clamp(_settings.FontSize, 7.5, 12.5) : Math.Clamp(_settings.FontSize, 9, 15),
             Margin = new Thickness(2, 0, 2, 0),
-            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect")
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
+            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
         };
-        Grid.SetColumn(deadline, 1);
+        Grid.SetColumn(deadline, 2);
 
         var title = new AutoFitTextBlock
         {
@@ -370,10 +402,12 @@ public partial class MainWindow : Window
             MinFitFontSize = 5.5,
             FontWeight = FontWeights.SemiBold,
             ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : task.Details,
-            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect")
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
+            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
         };
-        Grid.SetColumn(title, 2);
+        Grid.SetColumn(title, 3);
 
+        grid.Children.Add(complete);
         grid.Children.Add(url);
         grid.Children.Add(deadline);
         grid.Children.Add(title);
@@ -400,18 +434,69 @@ public partial class MainWindow : Window
         return row;
     }
 
-    private static string DeadlineText(TaskItem task)
+    private void ToggleCompleted(TaskItem task)
     {
-        if (!task.DeadlineEnabled || string.IsNullOrWhiteSpace(task.Deadline)) return "期限なし";
-        return DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)
-            ? d.ToString("MM / dd") : "期限なし";
+        task.Completed = !task.Completed;
+        task.CompletedAt = task.Completed ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : "";
+        task.Updated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        AppServices.Data.SaveTasks(_tasks);
+        AppServices.Log.Write($"完了状態変更: {task.Type} / {task.Title} / {(task.Completed ? "完了" : "未完了")}");
+        RefreshTasks();
+        UpdateStatus(task.Completed ? $"「{task.Title}」を完了にしました。" : $"「{task.Title}」を未完了に戻しました。");
+    }
+
+    private static string DateTimeText(TaskItem task)
+    {
+        if (!task.DeadlineEnabled || string.IsNullOrWhiteSpace(task.Deadline)) return "日時なし";
+        if (!DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var startDate))
+            return "日時なし";
+
+        var start = startDate.ToString("MM/dd");
+        if (!string.IsNullOrWhiteSpace(task.StartTime)) start += " " + task.StartTime;
+
+        var hasEndDate = !string.IsNullOrWhiteSpace(task.EndDate) &&
+            DateTime.TryParseExact(task.EndDate, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var endDate);
+        var hasEndTime = !string.IsNullOrWhiteSpace(task.EndTime);
+
+        if (!hasEndDate && !hasEndTime) return start;
+
+        string end;
+        if (hasEndDate)
+        {
+            end = endDate.ToString("MM/dd");
+            if (hasEndTime) end += " " + task.EndTime;
+        }
+        else
+        {
+            end = task.EndTime;
+        }
+
+        return $"{start}～{end}";
+    }
+
+    private static bool TryGetTaskStartDateTime(TaskItem task, out DateTime start)
+    {
+        start = default;
+        if (!task.DeadlineEnabled || !DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+            return false;
+
+        start = date.Date;
+        if (!string.IsNullOrWhiteSpace(task.StartTime) &&
+            TimeSpan.TryParseExact(task.StartTime, new[] { @"h\:mm", @"hh\:mm" },
+                CultureInfo.InvariantCulture, TimeSpanStyles.None, out var time))
+            start = start.Add(time);
+
+        return true;
     }
 
     private Brush GetDueBrush(TaskItem task)
     {
         var baseColor = GetThemeTextColor();
-        if (!task.DeadlineEnabled || !DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out var due))
+        if (task.Completed) return new SolidColorBrush(baseColor);
+        if (!TryGetTaskStartDateTime(task, out var due))
             return new SolidColorBrush(baseColor);
 
         var days = (int)Math.Floor((due.Date - DateTime.Today).TotalDays);
@@ -446,7 +531,7 @@ public partial class MainWindow : Window
 
     private TaskEditorWindow CreateEditor(TaskItem? task)
     {
-        var editor = new TaskEditorWindow(task is null ? null : CloneTask(task), _settings.FontSize)
+        var editor = new TaskEditorWindow(task is null ? null : CloneTask(task), _settings.FontSize, _settings)
         {
             Owner = this,
             Topmost = Topmost
@@ -485,7 +570,8 @@ public partial class MainWindow : Window
     {
         Id = t.Id, Type = t.Type, Title = t.Title, Details = t.Details, Url = t.Url, UrlEnabled = t.UrlEnabled,
         Deadline = t.Deadline, DeadlineEnabled = t.DeadlineEnabled, DeadlineYearExplicit = t.DeadlineYearExplicit,
-        DeadlineMetadataKnown = t.DeadlineMetadataKnown, Created = t.Created, Updated = t.Updated
+        DeadlineMetadataKnown = t.DeadlineMetadataKnown, StartTime = t.StartTime, EndDate = t.EndDate, EndTime = t.EndTime,
+        Completed = t.Completed, CompletedAt = t.CompletedAt, Created = t.Created, Updated = t.Updated
     };
 
     private static void QueueEditVoices(TaskItem before, TaskItem after)
@@ -505,7 +591,11 @@ public partial class MainWindow : Window
             else AppServices.Voice.Queue("URLを変更しました");
         }
 
-        if (before.DeadlineEnabled != after.DeadlineEnabled || !string.Equals(before.Deadline, after.Deadline, StringComparison.Ordinal))
+        if (before.DeadlineEnabled != after.DeadlineEnabled ||
+            !string.Equals(before.Deadline, after.Deadline, StringComparison.Ordinal) ||
+            !string.Equals(before.StartTime, after.StartTime, StringComparison.Ordinal) ||
+            !string.Equals(before.EndDate, after.EndDate, StringComparison.Ordinal) ||
+            !string.Equals(before.EndTime, after.EndTime, StringComparison.Ordinal))
             AppServices.Voice.Queue("期限を変更しました");
 
         AppServices.Voice.Queue(after.Type == "予定" ? "予定を変更しました" : "タスクを変更しました");
@@ -561,7 +651,7 @@ public partial class MainWindow : Window
             SelectMode.Delete => "削除するタスク / 予定を選択してください。",
             _ => "デスクトップ用タスク・予定表"
         });
-        CountText.Text = $"{_tasks.Count} 件";
+        UpdateCountText();
     }
 
     private void LockButton_Click(object sender, RoutedEventArgs e)
@@ -982,8 +1072,7 @@ public partial class MainWindow : Window
 
             foreach (var task in _tasks)
             {
-                if (!task.DeadlineEnabled || !DateTime.TryParseExact(task.Deadline, "yyyy-MM-dd", CultureInfo.InvariantCulture,
-                        DateTimeStyles.None, out var due)) continue;
+                if (task.Completed || !TryGetTaskStartDateTime(task, out var due)) continue;
                 var days = (int)(due.Date - today).TotalDays;
                 if (days is not (7 or 3)) continue;
 
@@ -1002,5 +1091,4 @@ public partial class MainWindow : Window
             if (playSchedule) AppServices.Voice.Queue("予定が近いものがあります");
         }
         catch (Exception ex) { AppServices.Log.WriteError("期限通知チェックエラー", ex); }
-    }
-}
+    }}
