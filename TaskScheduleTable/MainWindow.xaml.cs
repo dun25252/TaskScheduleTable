@@ -391,7 +391,7 @@ public partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowOrderWidth) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeleteWidth) });
 
-        var complete = new CheckBox
+        var complete = new System.Windows.Controls.CheckBox
         {
             IsChecked = task.Completed,
             Tag = task.Id,
