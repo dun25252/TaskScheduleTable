@@ -455,9 +455,10 @@ public partial class MainWindow : Window
         var start = startDate.ToString("MM/dd");
         if (!string.IsNullOrWhiteSpace(task.StartTime)) start += " " + task.StartTime;
 
+        var endDate = default(DateTime);
         var hasEndDate = !string.IsNullOrWhiteSpace(task.EndDate) &&
             DateTime.TryParseExact(task.EndDate, "yyyy-MM-dd", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out var endDate);
+                DateTimeStyles.None, out endDate);
         var hasEndTime = !string.IsNullOrWhiteSpace(task.EndTime);
 
         if (!hasEndDate && !hasEndTime) return start;
