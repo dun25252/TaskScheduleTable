@@ -168,13 +168,15 @@
                         <Border x:Name="TaskHeaderPanel" Grid.Row="0" Background="{DynamicResource HeaderFillBrush}" BorderBrush="{DynamicResource TextColorBrush}" BorderThickness="0,0,0,1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="HeaderCompleteColumn" Width="46"/>
                                     <ColumnDefinition x:Name="HeaderUrlColumn" Width="54"/>
-                                    <ColumnDefinition x:Name="HeaderDeadlineColumn" Width="96"/>
+                                    <ColumnDefinition x:Name="HeaderDeadlineColumn" Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="UrlHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="URL" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="DeadlineHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="期限日" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TaskTitleHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="2" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="CompleteHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="0" Text="完了" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="UrlHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="1" Text="URL" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="DeadlineHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="2" Text="日時" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TaskTitleHeader" Style="{StaticResource ReadableTextStyle}" Grid.Column="3" Text="予定名 or タスク名" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </Border>
                         <ScrollViewer x:Name="TaskScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
