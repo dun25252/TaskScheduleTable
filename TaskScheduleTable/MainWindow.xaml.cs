@@ -28,11 +28,10 @@ public partial class MainWindow : Window
     private TaskItem? _urlPopupTask;
     private bool _initialized;
     private bool _restoring;
-    private double _rowCompleteWidth = 46;
-    private double _rowUrlWidth = 54;
-    private double _rowDeadlineWidth = 150;
-    private double _rowOrderWidth = 62;
-    private double _rowDeleteWidth = 46;
+    private double _rowCompleteWidth = 42;
+    private double _rowUrlWidth = 44;
+    private double _rowDeadlineWidth = 120;
+    private double _rowActionWidth = 44;
 
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly DispatcherTimer _layoutTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
@@ -202,15 +201,14 @@ public partial class MainWindow : Window
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
             BackgroundButton.Content = "背景";
-            _rowCompleteWidth = 30;
-            _rowUrlWidth = 32;
-            _rowDeadlineWidth = 80;
-            _rowOrderWidth = 50;
-            _rowDeleteWidth = 34;
+            _rowCompleteWidth = 28;
+            _rowUrlWidth = 30;
+            _rowDeadlineWidth = 78;
+            _rowActionWidth = 34;
         }
         else if (veryCompact)
         {
-            LeftColumn.Width = new GridLength(Math.Clamp(72 + _settings.FontSize * 2.1, 100, 128));
+            LeftColumn.Width = new GridLength(Math.Clamp(70 + _settings.FontSize * 1.8, 92, 118));
             ContentGrid.Margin = new Thickness(4);
             LeftPanel.Padding = new Thickness(3);
             LockButton.Content = _settings.Locked ? "固定:ON" : "固定:OFF";
@@ -220,15 +218,14 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
-            _rowCompleteWidth = 34;
-            _rowUrlWidth = 38;
-            _rowDeadlineWidth = 100;
-            _rowOrderWidth = 54;
-            _rowDeleteWidth = 38;
+            _rowCompleteWidth = 32;
+            _rowUrlWidth = 34;
+            _rowDeadlineWidth = 96;
+            _rowActionWidth = 36;
         }
         else if (compact)
         {
-            LeftColumn.Width = new GridLength(Math.Clamp(78 + _settings.FontSize * 2.4, 115, 150));
+            LeftColumn.Width = new GridLength(Math.Clamp(76 + _settings.FontSize * 2.0, 108, 138));
             ContentGrid.Margin = new Thickness(5);
             LeftPanel.Padding = new Thickness(4);
             LockButton.Content = _settings.Locked ? "固定:ON" : "固定:OFF";
@@ -238,11 +235,10 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字＋";
             FontDownButton.Content = "文字－";
-            _rowCompleteWidth = 38;
-            _rowUrlWidth = 44;
-            _rowDeadlineWidth = 120;
-            _rowOrderWidth = 58;
-            _rowDeleteWidth = 42;
+            _rowCompleteWidth = 36;
+            _rowUrlWidth = 40;
+            _rowDeadlineWidth = 110;
+            _rowActionWidth = 40;
         }
         else
         {
@@ -256,23 +252,27 @@ public partial class MainWindow : Window
             TitleText.Text = "タスク・予定表";
             FontUpButton.Content = "文字を大きくする";
             FontDownButton.Content = "文字を小さくする";
-            _rowCompleteWidth = 46;
-            _rowUrlWidth = 54;
-            _rowDeadlineWidth = 150;
-            _rowOrderWidth = 62;
-            _rowDeleteWidth = 46;
+            _rowCompleteWidth = 42;
+            _rowUrlWidth = 44;
+            _rowDeadlineWidth = 120;
+            _rowActionWidth = 44;
         }
 
         HeaderCompleteColumn.Width = new GridLength(_rowCompleteWidth);
         HeaderUrlColumn.Width = new GridLength(_rowUrlWidth);
         HeaderDeadlineColumn.Width = new GridLength(_rowDeadlineWidth);
-        HeaderOrderColumn.Width = new GridLength(_rowOrderWidth);
-        HeaderDeleteColumn.Width = new GridLength(_rowDeleteWidth);
+        HeaderActionColumn.Width = new GridLength(_rowActionWidth);
+
+        CompleteHeader.Text = ultra ? "✓" : "完了";
+        UrlHeader.Text = ultra ? "U" : "URL";
+        DeadlineHeader.Text = "日時";
+        TaskTitleHeader.Text = veryCompact ? "予定名" : "予定名 or タスク名";
+        ActionHeader.Text = ultra ? "…" : "操作";
 
         var titleFont = ultra ? Math.Clamp(_settings.FontSize * 0.62, 8.5, 11.5) : compact ? Math.Clamp(_settings.FontSize * 0.82, 10, 15) : _settings.FontSize;
         TitleText.FontSize = titleFont;
         var headerFont = ultra ? Math.Clamp(_settings.FontSize * 0.72, 8, 15) : veryCompact ? Math.Clamp(_settings.FontSize * 0.82, 8, 19) : Math.Clamp(_settings.FontSize, 9, 24);
-        CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = OrderHeader.FontSize = DeleteHeader.FontSize = headerFont;
+        CompleteHeader.FontSize = UrlHeader.FontSize = DeadlineHeader.FontSize = TaskTitleHeader.FontSize = ActionHeader.FontSize = headerFont;
 
         var buttonFont = ultraShort ? Math.Clamp(_settings.FontSize, 8, 14) : shortHeight ? Math.Clamp(_settings.FontSize, 8.5, 18) : Math.Clamp(_settings.FontSize, 9, 26);
         foreach (var button in new[] { AddButton, EditButton, SortButton, FontUpButton, FontDownButton, BackgroundButton, VoiceButton })
