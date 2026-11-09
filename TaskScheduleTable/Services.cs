@@ -74,7 +74,7 @@ public sealed class LogService
     {
         var text = new StringBuilder()
             .AppendLine("APP=タスク_予定表")
-            .AppendLine("VERSION=2.1")
+            .AppendLine("VERSION=2.2")
             .AppendLine($"DATETIME={DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}")
             .AppendLine($"MESSAGE={message}")
             .AppendLine("EXCEPTION_BEGIN")
@@ -129,8 +129,9 @@ public sealed class DataService
     public List<TaskItem> LoadTasks()
     {
         var items = Load<List<TaskItem>>(_paths.TasksFile) ?? [];
-        foreach (var t in items)
+        for (var i = 0; i < items.Count; i++)
         {
+            var t = items[i];
             if (string.IsNullOrWhiteSpace(t.Id)) t.Id = Guid.NewGuid().ToString("N");
             if (t.Type != "予定") t.Type = "タスク";
             t.Title ??= "";
@@ -141,6 +142,7 @@ public sealed class DataService
             t.EndDate ??= "";
             t.EndTime ??= "";
             t.CompletedAt ??= "";
+            if (t.ManualOrder <= 0) t.ManualOrder = (i + 1) * 10;
             if (string.IsNullOrWhiteSpace(t.Created)) t.Created = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             if (string.IsNullOrWhiteSpace(t.Updated)) t.Updated = t.Created;
         }
