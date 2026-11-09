@@ -75,13 +75,13 @@ jobs:
           '@ | Set-Content .\package\TaskScheduleTable_v2.1\README.txt -Encoding UTF8
 
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
-          Compress-Archive -Path .\package\TaskScheduleTable_v2.1 -DestinationPath .\download\TaskScheduleTable_v2.1_RELEASE.zip -Force
+          Compress-Archive -Path .\package\TaskScheduleTable_v2.1 -DestinationPath .\download\TaskScheduleTable_v2.1_READY.zip -Force
 
       - name: Verify release package
         shell: pwsh
         run: |
           Remove-Item .\verify-release -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive .\download\TaskScheduleTable_v2.1_RELEASE.zip .\verify-release -Force
+          Expand-Archive .\download\TaskScheduleTable_v2.1_READY.zip .\verify-release -Force
           $root = Get-ChildItem .\verify-release -Directory | Select-Object -First 1
           $exe = Join-Path $root.FullName 'タスク_予定表.exe'
           if (-not (Test-Path $exe)) { throw 'Release EXE is missing.' }
@@ -96,7 +96,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f .\download\TaskScheduleTable_v2.1_RELEASE.zip
+          git add -f .\download\TaskScheduleTable_v2.1_READY.zip
 
           if (git diff --cached --quiet) {
             Write-Host "v2.1 package unchanged."
