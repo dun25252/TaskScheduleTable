@@ -14,6 +14,14 @@ public sealed class TaskItem
     public bool DeadlineEnabled { get; set; }
     public bool DeadlineYearExplicit { get; set; }
     public bool DeadlineMetadataKnown { get; set; } = true;
+
+    // v2.1: Deadline remains the start date for backward compatibility.
+    public string StartTime { get; set; } = "";
+    public string EndDate { get; set; } = "";
+    public string EndTime { get; set; } = "";
+    public bool Completed { get; set; }
+    public string CompletedAt { get; set; } = "";
+
     public string Created { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     public string Updated { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
