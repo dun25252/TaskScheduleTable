@@ -21,6 +21,7 @@ public sealed class TaskItem
     public string EndTime { get; set; } = "";
     public bool Completed { get; set; }
     public string CompletedAt { get; set; } = "";
+    public int ManualOrder { get; set; }
 
     public string Created { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     public string Updated { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -44,6 +45,7 @@ public sealed class AppSettingsModel
     public string TextColor { get; set; } = "#00FF66";
     public string BackgroundColor { get; set; } = "#000000";
     public double VoiceVolume { get; set; } = 1.0;
+    public string SortMode { get; set; } = "Deadline";
 }
 
 public sealed class NotificationState
