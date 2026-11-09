@@ -55,14 +55,14 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item .\package -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v2.1\Voice | Out-Null
+          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v2.2\Voice | Out-Null
 
-          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v2.1\タスク_予定表.exe -Force
-          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v2.1\Voice\README.md -Force
-          Copy-Item .\TaskScheduleTable\Voice\*.wav .\package\TaskScheduleTable_v2.1\Voice\ -Force
+          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v2.2\タスク_予定表.exe -Force
+          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v2.2\Voice\README.md -Force
+          Copy-Item .\TaskScheduleTable\Voice\*.wav .\package\TaskScheduleTable_v2.2\Voice\ -Force
 
           @'
-          タスク_予定表 v2.1
+          タスク_予定表 v2.2
 
           使い方:
           1. ZIPを展開
@@ -72,16 +72,16 @@ jobs:
 
           Voice:
           VOICE一式を同梱しています。音量はアプリ内のVOICEメニューで0～100%に調整できます。
-          '@ | Set-Content .\package\TaskScheduleTable_v2.1\README.txt -Encoding UTF8
+          '@ | Set-Content .\package\TaskScheduleTable_v2.2\README.txt -Encoding UTF8
 
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
-          Compress-Archive -Path .\package\TaskScheduleTable_v2.1 -DestinationPath .\download\TaskScheduleTable_v2.1_READY.zip -Force
+          Compress-Archive -Path .\package\TaskScheduleTable_v2.2 -DestinationPath .\download\TaskScheduleTable_v2.2_READY.zip -Force
 
       - name: Verify release package
         shell: pwsh
         run: |
           Remove-Item .\verify-release -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive .\download\TaskScheduleTable_v2.1_READY.zip .\verify-release -Force
+          Expand-Archive .\download\TaskScheduleTable_v2.2_READY.zip .\verify-release -Force
           $root = Get-ChildItem .\verify-release -Directory | Select-Object -First 1
           $exe = Join-Path $root.FullName 'タスク_予定表.exe'
           if (-not (Test-Path $exe)) { throw 'Release EXE is missing.' }
@@ -96,13 +96,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f .\download\TaskScheduleTable_v2.1_READY.zip
+          git add -f .\download\TaskScheduleTable_v2.2_READY.zip
 
           if (git diff --cached --quiet) {
-            Write-Host "v2.1 package unchanged."
+            Write-Host "v2.2 package unchanged."
             exit 0
           }
 
-          git commit -m "build: update v2.1 ready package"
+          git commit -m "build: update v2.2 ready package"
           git pull --rebase origin main
           git push origin HEAD:main
