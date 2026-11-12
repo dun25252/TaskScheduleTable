@@ -10,3 +10,6 @@ Log/
 *_管理用.txt
 TaskScheduleTable/Voice/*.wav
 !TaskScheduleTable/Voice/README.md
+
+# Generated from Assets/IconBase64 before compile
+TaskScheduleTable/Assets/TaskScheduleTable.ico
