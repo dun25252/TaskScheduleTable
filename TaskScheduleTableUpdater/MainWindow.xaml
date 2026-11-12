@@ -1,0 +1,72 @@
+<Window x:Class="TaskScheduleTableUpdater.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="タスク・予定表 Updater"
+        Width="640" Height="380"
+        MinWidth="560" MinHeight="340"
+        WindowStartupLocation="CenterScreen"
+        Background="#000000" Foreground="#00FF66"
+        FontFamily="Yu Gothic UI">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#00FF66"/>
+            <Setter Property="Background" Value="#080808"/>
+            <Setter Property="BorderBrush" Value="#00FF66"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="4"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="#00FF66"/>
+            <Setter Property="Background" Value="#050505"/>
+            <Setter Property="BorderBrush" Value="#00FF66"/>
+            <Setter Property="CaretBrush" Value="#00FF66"/>
+            <Setter Property="Padding" Value="7"/>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#00FF66" BorderThickness="1" Margin="8" Padding="14">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="タスク・予定表 アップデーター"
+                       FontSize="22" FontWeight="Bold" Margin="0,0,0,12"/>
+
+            <TextBlock Grid.Row="1"
+                       Text="旧バージョンの「タスク_予定表.exe」を選択してください。タスクや設定データは削除しません。"
+                       TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+            <Grid Grid.Row="2" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TargetPathBox" Grid.Column="0" VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Content="参照..." Width="92" Click="Browse_Click"/>
+            </Grid>
+
+            <Border Grid.Row="3" BorderBrush="#006B2C" BorderThickness="1" Background="#050505" Padding="10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="StatusText" TextWrapping="Wrap" FontSize="13"/>
+                </ScrollViewer>
+            </Border>
+
+            <Grid Grid.Row="4" Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="VersionText" Grid.Column="0" VerticalAlignment="Center" Text="更新先: v2.6"/>
+                <Button x:Name="UpdateButton" Grid.Column="1" Width="150" Height="40"
+                        Content="アップデート" Click="Update_Click"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
