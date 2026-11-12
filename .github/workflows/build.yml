@@ -53,7 +53,7 @@ jobs:
           if (-not $vs) { throw 'Visual Studio C++ build tools were not found.' }
           $devcmd = Join-Path $vs 'Common7\Tools\VsDevCmd.bat'
           $root = (Get-Location).Path
-          $cmd = '"{0}" -arch=x64 -host_arch=x64 && cd /d "{1}\updater" && rc /nologo /fo "{1}\publish\updater\TaskScheduleTableUpdater.res" TaskScheduleTableUpdater.rc && cl /nologo /std:c++17 /EHsc /O2 /DUNICODE /D_UNICODE /utf-8 TaskScheduleTableUpdater.cpp "{1}\publish\updater\TaskScheduleTableUpdater.res" user32.lib comdlg32.lib shell32.lib advapi32.lib /link /SUBSYSTEM:WINDOWS /OUT:"{1}\publish\updater\タスク_予定表_Updater.exe"' -f $devcmd, $root
+          $cmd = '"{0}" -arch=x64 -host_arch=x64 && cd /d "{1}\updater" && rc /nologo /fo "{1}\publish\updater\TaskScheduleTableUpdater.res" TaskScheduleTableUpdater.rc && cl /nologo /std:c++17 /EHsc /O2 /DUNICODE /D_UNICODE /utf-8 TaskScheduleTableUpdater.cpp "{1}\publish\updater\TaskScheduleTableUpdater.res" user32.lib comdlg32.lib shell32.lib advapi32.lib gdi32.lib /link /SUBSYSTEM:WINDOWS /OUT:"{1}\publish\updater\タスク_予定表_Updater.exe"' -f $devcmd, $root
           cmd /c $cmd
           $updater = Get-Item '.\publish\updater\タスク_予定表_Updater.exe'
           if ($updater.Length -gt 5000000) { throw ('Updater is unexpectedly large: ' + $updater.Length) }
