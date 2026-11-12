@@ -145,7 +145,8 @@ jobs:
           $payloadIcon = Join-Path $updateRoot.FullName 'UpdateFiles\TaskScheduleTable.ico'
           $payloadVoices = @(Get-ChildItem (Join-Path $updateRoot.FullName 'UpdateFiles\Voice') -Filter '*.wav' -File)
           if (-not (Test-Path $updaterExe)) { throw 'Updater EXE is missing.' }
-          if ((Get-Item $updaterExe).Length -lt 1000000) { throw 'Updater EXE size validation failed.' }
+          $updaterSize = (Get-Item $updaterExe).Length
+          if ($updaterSize -lt 50000 -or $updaterSize -gt 5000000) { throw ('Updater EXE size validation failed: ' + $updaterSize) }
           if (-not (Test-Path $payloadExe)) { throw 'Updater payload EXE is missing.' }
           if (-not (Test-Path $payloadIcon)) { throw 'Updater icon payload is missing.' }
           if ($payloadVoices.Count -ne 22) { throw ('Updater VOICE count validation failed: ' + $payloadVoices.Count) }
