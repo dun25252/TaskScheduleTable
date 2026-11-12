@@ -57,14 +57,15 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item .\package -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v2.4\Voice | Out-Null
+          New-Item -ItemType Directory -Force -Path .\package\TaskScheduleTable_v2.5\Voice | Out-Null
 
-          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v2.4\タスク_予定表.exe -Force
-          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v2.4\Voice\README.md -Force
-          Copy-Item .\TaskScheduleTable\Voice\*.wav .\package\TaskScheduleTable_v2.4\Voice\ -Force
+          Copy-Item .\publish\win-x64\タスク_予定表.exe .\package\TaskScheduleTable_v2.5\タスク_予定表.exe -Force
+          Copy-Item .\TaskScheduleTable\Assets\TaskScheduleTable.ico .\package\TaskScheduleTable_v2.5\TaskScheduleTable.ico -Force
+          Copy-Item .\TaskScheduleTable\Voice\README.md .\package\TaskScheduleTable_v2.5\Voice\README.md -Force
+          Copy-Item .\TaskScheduleTable\Voice\*.wav .\package\TaskScheduleTable_v2.5\Voice\ -Force
 
           @'
-          タスク_予定表 v2.4
+          タスク_予定表 v2.5
 
           使い方:
           1. ZIPを展開
@@ -74,54 +75,59 @@ jobs:
 
           Voice:
           VOICE一式を同梱しています。音量はアプリ内のVOICEメニューで0～100%に調整できます。
-          '@ | Set-Content .\package\TaskScheduleTable_v2.4\README.txt -Encoding UTF8
+          '@ | Set-Content .\package\TaskScheduleTable_v2.5\README.txt -Encoding UTF8
 
           New-Item -ItemType Directory -Force -Path .\download | Out-Null
-          Compress-Archive -Path .\package\TaskScheduleTable_v2.4 -DestinationPath .\download\TaskScheduleTable_v2.4_READY.zip -Force
+          Compress-Archive -Path .\package\TaskScheduleTable_v2.5 -DestinationPath .\download\TaskScheduleTable_v2.5_READY.zip -Force
 
           Remove-Item .\update-package -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path .\update-package\TaskScheduleTable_Update_to_v2.4\UpdateFiles\Voice | Out-Null
+          New-Item -ItemType Directory -Force -Path .\update-package\TaskScheduleTable_Update_to_v2.5\UpdateFiles\Voice | Out-Null
 
-          Copy-Item .\updater\Update_to_v2.4.cmd .\update-package\TaskScheduleTable_Update_to_v2.4\Update_to_v2.4.cmd -Force
-          Copy-Item .\publish\win-x64\タスク_予定表.exe .\update-package\TaskScheduleTable_Update_to_v2.4\UpdateFiles\タスク_予定表.exe -Force
-          Copy-Item .\TaskScheduleTable\Voice\*.wav .\update-package\TaskScheduleTable_Update_to_v2.4\UpdateFiles\Voice\ -Force
+          Copy-Item .\updater\Update_to_v2.5.cmd .\update-package\TaskScheduleTable_Update_to_v2.5\Update_to_v2.5.cmd -Force
+          Copy-Item .\publish\win-x64\タスク_予定表.exe .\update-package\TaskScheduleTable_Update_to_v2.5\UpdateFiles\タスク_予定表.exe -Force
+          Copy-Item .\TaskScheduleTable\Assets\TaskScheduleTable.ico .\update-package\TaskScheduleTable_Update_to_v2.5\UpdateFiles\TaskScheduleTable.ico -Force
+          Copy-Item .\TaskScheduleTable\Voice\*.wav .\update-package\TaskScheduleTable_Update_to_v2.5\UpdateFiles\Voice\ -Force
 
           @'
-          タスク_予定表 v2.4 更新用
+          タスク_予定表 v2.5 更新用
 
           1. この更新フォルダを旧バージョンのタスク_予定表フォルダ内へ展開してください。
-          2. Update_to_v2.4.cmd を実行してください。
+          2. Update_to_v2.5.cmd を実行してください。
           3. 旧EXEは Backup_PreUpdate フォルダへバックアップされます。
           4. タスクや設定データは削除されません。
 
           更新対象:
           - タスク_予定表.exe
           - Voice フォルダ
-          '@ | Set-Content .\update-package\TaskScheduleTable_Update_to_v2.4\README_更新方法.txt -Encoding UTF8
+          '@ | Set-Content .\update-package\TaskScheduleTable_Update_to_v2.5\README_更新方法.txt -Encoding UTF8
 
-          Compress-Archive -Path .\update-package\TaskScheduleTable_Update_to_v2.4 -DestinationPath .\download\TaskScheduleTable_Update_to_v2.4.zip -Force
+          Compress-Archive -Path .\update-package\TaskScheduleTable_Update_to_v2.5 -DestinationPath .\download\TaskScheduleTable_Update_to_v2.5.zip -Force
 
       - name: Verify release package
         shell: pwsh
         run: |
           Remove-Item .\verify-release -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive .\download\TaskScheduleTable_v2.4_READY.zip .\verify-release -Force
+          Expand-Archive .\download\TaskScheduleTable_v2.5_READY.zip .\verify-release -Force
           $root = Get-ChildItem .\verify-release -Directory | Select-Object -First 1
           $exe = Join-Path $root.FullName 'タスク_予定表.exe'
           if (-not (Test-Path $exe)) { throw 'Release EXE is missing.' }
+          $icon = Join-Path $root.FullName 'TaskScheduleTable.ico'
           $voices = @(Get-ChildItem (Join-Path $root.FullName 'Voice') -Filter '*.wav' -File)
+          if (-not (Test-Path $icon)) { throw 'Release icon is missing.' }
           if ($voices.Count -ne 22) { throw ('VOICE count validation failed: ' + $voices.Count) }
           Write-Host ('RELEASE EXE: ' + $exe)
           Write-Host ('VOICE COUNT: ' + $voices.Count)
 
           Remove-Item .\verify-update -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive .\download\TaskScheduleTable_Update_to_v2.4.zip .\verify-update -Force
+          Expand-Archive .\download\TaskScheduleTable_Update_to_v2.5.zip .\verify-update -Force
           $updateRoot = Get-ChildItem .\verify-update -Directory | Select-Object -First 1
-          $cmd = Join-Path $updateRoot.FullName 'Update_to_v2.4.cmd'
+          $cmd = Join-Path $updateRoot.FullName 'Update_to_v2.5.cmd'
           $payloadExe = Join-Path $updateRoot.FullName 'UpdateFiles\タスク_予定表.exe'
+          $payloadIcon = Join-Path $updateRoot.FullName 'UpdateFiles\TaskScheduleTable.ico'
           $payloadVoices = @(Get-ChildItem (Join-Path $updateRoot.FullName 'UpdateFiles\Voice') -Filter '*.wav' -File)
           if (-not (Test-Path $cmd)) { throw 'Updater CMD is missing.' }
           if (-not (Test-Path $payloadExe)) { throw 'Updater payload EXE is missing.' }
+          if (-not (Test-Path $payloadIcon)) { throw 'Updater icon payload is missing.' }
           if ($payloadVoices.Count -ne 22) { throw ('Updater VOICE count validation failed: ' + $payloadVoices.Count) }
           Write-Host ('UPDATER CMD: ' + $cmd)
           Write-Host ('UPDATER VOICE COUNT: ' + $payloadVoices.Count)
@@ -132,14 +138,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f .\download\TaskScheduleTable_v2.4_READY.zip
-          git add -f .\download\TaskScheduleTable_Update_to_v2.4.zip
+          git add -f .\download\TaskScheduleTable_v2.5_READY.zip
+          git add -f .\download\TaskScheduleTable_Update_to_v2.5.zip
 
           if (git diff --cached --quiet) {
-            Write-Host "v2.4 package unchanged."
+            Write-Host "v2.5 package unchanged."
             exit 0
           }
 
-          git commit -m "build: update v2.4 ready package"
+          git commit -m "build: update v2.5 ready package"
           git pull --rebase origin main
           git push origin HEAD:main
