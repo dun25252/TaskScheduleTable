@@ -14,8 +14,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: task-schedule-main-build
-  cancel-in-progress: true
+  group: task-schedule-main-build-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   build-win-x64:
