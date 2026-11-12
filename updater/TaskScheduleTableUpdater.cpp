@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <shlobj.h>
 #include <tlhelp32.h>
 #include <filesystem>
 #include <string>
@@ -11,6 +12,7 @@
 #include <thread>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "comdlg32.lib")
