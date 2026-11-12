@@ -211,7 +211,7 @@ static void RunUpdate(HWND owner)
         fs::create_directories(backupDir);
         fs::copy_file(target, backupDir / L"タスク_予定表.exe", fs::copy_options::overwrite_existing);
 
-        SetStatus(L"v2.6本体を更新しています...");
+        SetStatus(L"v2.7本体を更新しています...");
 
         std::wstring copyError;
         if (!CopyWithRetry(payloadExe, target, copyError))
@@ -227,7 +227,7 @@ static void RunUpdate(HWND owner)
             L"アップデート完了。\r\n\r\n"
             L"旧EXEのバックアップ:\r\n" + backupDir.wstring() +
             L"\r\n\r\nタスク・背景・色・VOICE音量などの設定は保持されています。\r\n"
-            L"v2.6を起動します。";
+            L"v2.7を起動します。";
 
         SetStatus(done);
 
@@ -276,7 +276,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY | WS_VSCROLL,
             18, 140, 586, 120, hwnd, reinterpret_cast<HMENU>(103), gInstance, nullptr);
 
-        CreateWindowW(L"STATIC", L"更新先: v2.6",
+        CreateWindowW(L"STATIC", L"更新先: v2.7",
             WS_CHILD | WS_VISIBLE,
             18, 282, 220, 28, hwnd, nullptr, gInstance, nullptr);
 
