@@ -22,4 +22,8 @@
   <ItemGroup>
     <None Include="Voice\**\*.wav" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="GenerateApplicationIcon" BeforeTargets="CoreCompile">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$parts = Get-ChildItem '$(MSBuildProjectDirectory)\Assets\IconBase64\part*.txt' | Sort-Object Name; $b64 = ($parts | ForEach-Object { Get-Content $_.FullName -Raw }) -join ''; [IO.File]::WriteAllBytes('$(MSBuildProjectDirectory)\Assets\TaskScheduleTable.ico', [Convert]::FromBase64String($b64))&quot;" />
+  </Target>
 </Project>
