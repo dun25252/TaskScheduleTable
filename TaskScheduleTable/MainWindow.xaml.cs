@@ -109,7 +109,7 @@ public partial class MainWindow : Window
         _restoring = true;
         try
         {
-            _settings.FontSize = Math.Clamp(_settings.FontSize, 8, 30);
+            _settings.FontSize = Math.Clamp(_settings.FontSize, 8, 48);
             _settings.Width = Math.Clamp(_settings.Width, MinWidth, Math.Max(MinWidth, SystemParameters.VirtualScreenWidth * 0.95));
             _settings.Height = Math.Clamp(_settings.Height, MinHeight, Math.Max(MinHeight, SystemParameters.VirtualScreenHeight * 0.95));
 
@@ -171,7 +171,7 @@ public partial class MainWindow : Window
             _settings.Top = bounds.Top;
             _settings.Width = Math.Max(MinWidth, bounds.Width);
             _settings.Height = Math.Max(MinHeight, bounds.Height);
-            _settings.FontSize = Math.Clamp(_settings.FontSize, 8, 30);
+            _settings.FontSize = Math.Clamp(_settings.FontSize, 8, 48);
             _settings.Topmost = Topmost;
             AppServices.Data.SaveSettings(_settings);
         }
@@ -190,7 +190,7 @@ public partial class MainWindow : Window
 
         if (ultra)
         {
-            LeftColumn.Width = new GridLength(88);
+            LeftColumn.Width = new GridLength(76);
             ContentGrid.Margin = new Thickness(2);
             LeftPanel.Padding = new Thickness(2);
             LockButton.Content = _settings.Locked ? "固:ON" : "固:OFF";
@@ -208,7 +208,7 @@ public partial class MainWindow : Window
         }
         else if (veryCompact)
         {
-            LeftColumn.Width = new GridLength(Math.Clamp(70 + _settings.FontSize * 1.8, 92, 118));
+            LeftColumn.Width = new GridLength(Math.Clamp(66 + _settings.FontSize * 1.2, 82, 102));
             ContentGrid.Margin = new Thickness(4);
             LeftPanel.Padding = new Thickness(3);
             LockButton.Content = _settings.Locked ? "固定:ON" : "固定:OFF";
@@ -225,7 +225,7 @@ public partial class MainWindow : Window
         }
         else if (compact)
         {
-            LeftColumn.Width = new GridLength(Math.Clamp(76 + _settings.FontSize * 2.0, 108, 138));
+            LeftColumn.Width = new GridLength(Math.Clamp(72 + _settings.FontSize * 1.4, 94, 118));
             ContentGrid.Margin = new Thickness(5);
             LeftPanel.Padding = new Thickness(4);
             LockButton.Content = _settings.Locked ? "固定:ON" : "固定:OFF";
@@ -242,7 +242,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            LeftColumn.Width = new GridLength(Math.Clamp(86 + _settings.FontSize * 3.0, 145, 190));
+            LeftColumn.Width = new GridLength(Math.Clamp(82 + _settings.FontSize * 2.1, 125, 165));
             ContentGrid.Margin = new Thickness(7);
             LeftPanel.Padding = new Thickness(5);
             LockButton.Content = _settings.Locked ? "位置固定: ON" : "位置固定: OFF";
@@ -263,11 +263,7 @@ public partial class MainWindow : Window
         HeaderDeadlineColumn.Width = new GridLength(_rowDeadlineWidth);
         HeaderActionColumn.Width = new GridLength(_rowActionWidth);
 
-        CompleteHeader.Text = ultra ? "✓" : "完了";
-        UrlHeader.Text = ultra ? "U" : "URL";
-        DeadlineHeader.Text = "日時";
-        TaskTitleHeader.Text = veryCompact ? "予定名" : "予定名 or タスク名";
-        ActionHeader.Text = ultra ? "…" : "操作";
+        TaskHeaderPanel.Visibility = Visibility.Collapsed;
 
         var titleFont = ultra ? Math.Clamp(_settings.FontSize * 0.62, 8.5, 11.5) : compact ? Math.Clamp(_settings.FontSize * 0.82, 10, 15) : _settings.FontSize;
         TitleText.FontSize = titleFont;
@@ -292,7 +288,6 @@ public partial class MainWindow : Window
         StatusText.FontSize = CountText.FontSize = ultraShort ? Math.Clamp(_settings.FontSize, 8, 14) : Math.Clamp(_settings.FontSize, 9, 24);
 
         TitleRow.Height = new GridLength(ultraShort ? 29 : Math.Max(33, Math.Ceiling(titleFont * 1.35 + 8)));
-        HeaderRow.Height = new GridLength(ultraShort ? 26 : Math.Max(29, Math.Ceiling(headerFont * 1.25 + 7)));
         StatusRow.Height = new GridLength(ultraShort ? 24 : Math.Max(26, Math.Ceiling(StatusText.FontSize * 1.2 + 6)));
 
         FontLabel.Text = $"文字サイズ: {_settings.FontSize:0.0} pt";
@@ -300,10 +295,8 @@ public partial class MainWindow : Window
 
     private double CurrentRowHeight()
     {
-        var h = ActualHeight > 0 ? ActualHeight : Height;
-        if (h < 285) return Math.Clamp(_settings.FontSize * 1.35 + 8, 30, 50);
-        if (h < 335) return Math.Clamp(_settings.FontSize * 1.55 + 8, 34, 62);
-        return Math.Clamp(_settings.FontSize * 1.85 + 8, 38, 80);
+        // v2.7: 2段カード。文字を大きくしても行自体を広げ、文字を縮小しない。
+        return Math.Clamp((_settings.FontSize * 2.45) + 24, 66, 170);
     }
 
     private void RefreshTasks()
@@ -322,7 +315,7 @@ public partial class MainWindow : Window
                 Foreground = new SolidColorBrush(GetThemeTextColor()),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 Margin = new Thickness(20),
-                FontSize = Math.Clamp(_settings.FontSize, 8, 30)
+                FontSize = Math.Clamp(_settings.FontSize, 8, 48)
             });
         }
         else
@@ -373,22 +366,25 @@ public partial class MainWindow : Window
         var dueBrush = GetDueBrush(task);
         var row = new Border
         {
-            Height = CurrentRowHeight(),
+            MinHeight = CurrentRowHeight(),
             BorderBrush = new SolidColorBrush(GetThemeTextColor()),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Tag = task.Id,
             Cursor = System.Windows.Input.Cursors.Arrow,
             ClipToBounds = true,
-            Opacity = task.Completed ? 0.62 : 1.0
+            Opacity = task.Completed ? 0.66 : 1.0,
+            Padding = new Thickness(ActualWidth < 520 ? 5 : 8, 5, ActualWidth < 520 ? 5 : 8, 5)
         };
         row.SetResourceReference(Border.BackgroundProperty, "RowFillBrush");
 
-        var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowCompleteWidth) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowUrlWidth) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowDeadlineWidth) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(_rowActionWidth) });
+        // 1段目 = タイトル、2段目 = 日時 + URL。
+        // タイトルと日時を横方向で競合させない。
+        var outer = new Grid();
+        outer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ActualWidth < 520 ? 30 : 38) });
+        outer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        outer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ActualWidth < 520 ? 32 : 40) });
+        outer.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        outer.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var complete = new System.Windows.Controls.CheckBox
         {
@@ -396,9 +392,11 @@ public partial class MainWindow : Window
             Tag = task.Id,
             ToolTip = task.Completed ? "完了を取り消す" : "完了にする",
             Focusable = false,
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             LayoutTransform = new ScaleTransform(
-                ActualWidth < 520 ? 0.92 : Math.Clamp(_settings.FontSize / 14.0, 1.0, 1.35),
-                ActualWidth < 520 ? 0.92 : Math.Clamp(_settings.FontSize / 14.0, 1.0, 1.35))
+                Math.Clamp(_settings.FontSize / 18.0, 1.0, 1.65),
+                Math.Clamp(_settings.FontSize / 18.0, 1.0, 1.65))
         };
         complete.Click += (_, e) =>
         {
@@ -406,17 +404,79 @@ public partial class MainWindow : Window
             SetCompleted(task, complete.IsChecked == true);
         };
         Grid.SetColumn(complete, 0);
+        Grid.SetRowSpan(complete, 2);
 
-        var urlSize = ActualWidth < 520 ? 22.0 : 26.0;
-        var url = new Button
+        var title = new TextBlock
         {
-            Content = task.UrlEnabled && !string.IsNullOrWhiteSpace(task.Url) ? "●" : "○",
-            Tag = task.Id,
-            Width = urlSize,
-            Height = urlSize,
+            Text = task.Title,
+            Foreground = dueBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(4, 0, 6, 2),
+            FontSize = _settings.FontSize,
+            FontWeight = FontWeights.SemiBold,
+            TextWrapping = TextWrapping.NoWrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : $"{task.Title}\n\n{task.Details}",
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
+            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
+        };
+        Grid.SetColumn(title, 1);
+        Grid.SetRow(title, 0);
+
+        var actionSize = Math.Clamp(_settings.FontSize * 0.95, 24, 34);
+        var action = new Button
+        {
+            Content = "…",
+            Width = actionSize,
+            Height = actionSize,
             Padding = new Thickness(0),
             Margin = new Thickness(1),
-            FontSize = Math.Clamp(_settings.FontSize * 0.72, 8, 16),
+            FontSize = Math.Clamp(_settings.FontSize, 12, 24),
+            FontWeight = FontWeights.Bold,
+            ToolTip = "順番変更 / 完全削除",
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        action.Click += (_, e) =>
+        {
+            e.Handled = true;
+            OpenTaskActionMenu(task, action);
+        };
+        Grid.SetColumn(action, 2);
+        Grid.SetRowSpan(action, 2);
+
+        var meta = new Grid
+        {
+            Margin = new Thickness(4, 1, 6, 0)
+        };
+        meta.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        meta.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var dateText = DateTimeText(task);
+        var deadline = new TextBlock
+        {
+            Text = dateText,
+            Foreground = dueBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.None,
+            FontSize = Math.Clamp(_settings.FontSize * 0.78, 9, 38),
+            FontWeight = FontWeights.Medium,
+            Margin = new Thickness(0, 0, 8, 0),
+            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
+            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null,
+            ToolTip = dateText
+        };
+        Grid.SetColumn(deadline, 0);
+
+        var url = new Button
+        {
+            Content = task.UrlEnabled && !string.IsNullOrWhiteSpace(task.Url) ? "URL" : "－",
+            Tag = task.Id,
+            MinWidth = ActualWidth < 520 ? 34 : 42,
+            Height = Math.Clamp(_settings.FontSize * 0.92, 24, 34),
+            Padding = new Thickness(4, 0, 4, 0),
+            Margin = new Thickness(0),
+            FontSize = Math.Clamp(_settings.FontSize * 0.62, 8, 18),
             ToolTip = "URLメニュー"
         };
         url.Click += (sender, e) =>
@@ -426,63 +486,16 @@ public partial class MainWindow : Window
         };
         Grid.SetColumn(url, 1);
 
-        var deadline = new TextBlock
-        {
-            Text = DateTimeText(task),
-            Foreground = dueBrush,
-            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-            VerticalAlignment = System.Windows.VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            FontSize = ActualWidth < 520
-                ? Math.Clamp(_settings.FontSize * 0.78, 7.5, 15)
-                : Math.Clamp(_settings.FontSize * 0.90, 8, 24),
-            Margin = new Thickness(2, 0, 2, 0),
-            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
-            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null,
-            ToolTip = DateTimeText(task)
-        };
-        Grid.SetColumn(deadline, 2);
+        meta.Children.Add(deadline);
+        meta.Children.Add(url);
+        Grid.SetColumn(meta, 1);
+        Grid.SetRow(meta, 1);
 
-        var title = new AutoFitTextBlock
-        {
-            Text = task.Title,
-            Foreground = dueBrush,
-            VerticalAlignment = System.Windows.VerticalAlignment.Center,
-            Margin = new Thickness(ActualWidth < 520 ? 4 : 8, 0, ActualWidth < 520 ? 4 : 8, 0),
-            BaseFontSize = _settings.FontSize,
-            MinFitFontSize = 6.0,
-            FontWeight = FontWeights.SemiBold,
-            ToolTip = string.IsNullOrWhiteSpace(task.Details) ? task.Title : $"{task.Title}\n\n{task.Details}",
-            Effect = (System.Windows.Media.Effects.Effect)FindResource("TextHaloEffect"),
-            TextDecorations = task.Completed ? TextDecorations.Strikethrough : null
-        };
-        Grid.SetColumn(title, 3);
-
-        var actionSize = ActualWidth < 520 ? 24.0 : 28.0;
-        var action = new Button
-        {
-            Content = "…",
-            Width = actionSize,
-            Height = actionSize,
-            Padding = new Thickness(0),
-            Margin = new Thickness(1),
-            FontSize = Math.Clamp(_settings.FontSize, 11, 20),
-            FontWeight = FontWeights.Bold,
-            ToolTip = "順番変更 / 完全削除"
-        };
-        action.Click += (_, e) =>
-        {
-            e.Handled = true;
-            OpenTaskActionMenu(task, action);
-        };
-        Grid.SetColumn(action, 4);
-
-        grid.Children.Add(complete);
-        grid.Children.Add(url);
-        grid.Children.Add(deadline);
-        grid.Children.Add(title);
-        grid.Children.Add(action);
-        row.Child = grid;
+        outer.Children.Add(complete);
+        outer.Children.Add(title);
+        outer.Children.Add(action);
+        outer.Children.Add(meta);
+        row.Child = outer;
 
         row.MouseLeftButtonUp += (_, e) =>
         {
@@ -771,7 +784,7 @@ public partial class MainWindow : Window
 
     private void ChangeFontSize(double delta)
     {
-        var value = Math.Clamp(_settings.FontSize + delta, 8, 30);
+        var value = Math.Clamp(_settings.FontSize + delta, 8, 48);
         if (Math.Abs(value - _settings.FontSize) < 0.01) return;
 
         _settings.FontSize = value;
@@ -1195,11 +1208,13 @@ public partial class MainWindow : Window
         var chromeOpacity = hasImage ? Math.Clamp(readability + 0.10, 0.0, 0.80) : 1.0;
         var headerOpacity = hasImage ? Math.Clamp(readability + 0.06, 0.0, 0.76) : 1.0;
         var buttonOpacity = hasImage ? Math.Clamp(readability + 0.12, 0.0, 0.82) : 0.85;
+        // タスク行だけは背景画像が強くても最低限の可読性を確保する。
+        var rowOpacity = hasImage ? Math.Max(readability, 0.72) : 1.0;
 
         SetSurfaceBrushOpacity("ChromeFillBrush", chromeOpacity);
         SetSurfaceBrushOpacity("PanelFillBrush", panelOpacity);
         SetSurfaceBrushOpacity("HeaderFillBrush", headerOpacity);
-        SetSurfaceBrushOpacity("RowFillBrush", panelOpacity);
+        SetSurfaceBrushOpacity("RowFillBrush", rowOpacity);
         SetSurfaceBrushOpacity("ButtonFillBrush", buttonOpacity);
     }
 
